@@ -32,6 +32,7 @@ import {
 import {
   isSoundMuted,
   playTap,
+  setMusicMode,
   setSoundMuted,
   stopAmbientMusic,
 } from './utils/sound';
@@ -117,10 +118,16 @@ export function App() {
   };
 
   const solvedCount = PUZZLE_ORDER.filter((id) => progress.solved[id]).length;
+  const allSolved = solvedCount === PUZZLE_ORDER.length;
+  const shouldPlayFinaleBgm = started && activePuzzle === null && allSolved;
   const hasProgress =
     solvedCount > 0 ||
     progress.wordleGuesses.length > 0 ||
     Object.keys(progress.crosswordGrid).length > 0;
+
+  useEffect(() => {
+    setMusicMode(shouldPlayFinaleBgm ? 'finale' : 'default', started);
+  }, [shouldPlayFinaleBgm, started]);
 
   const handleSolve = (puzzleId: PuzzleId) => {
     const willCompleteAll = PUZZLE_ORDER.every(
