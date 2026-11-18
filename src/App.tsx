@@ -311,6 +311,31 @@ export function App() {
                 </div>
               </header>
 
+              {/* All 3 Solved Persistent Congratulations Banner */}
+              {solvedCount === 3 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                  className="sdv-wood-panel p-1.5 mb-4"
+                >
+                  <div className="bg-[#FFF3D1] border-2 border-[#5B2308] px-4 py-3 flex items-center gap-3">
+                    <div className="animate-junimo shrink-0">
+                      <PixelStardrop className="w-8 h-8" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-pixel-title text-[11px] leading-snug text-[#9E3C16]">
+                        All 3 Spots Unlocked, Bubba!
+                      </p>
+                      <p className="font-pixel-body text-lg text-[#421C09] leading-tight mt-0.5 flex items-center gap-1">
+                        <span>Pick where we’re eating tonight</span>
+                        <PixelHeart className="w-3.5 h-3.5 inline shrink-0" />
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* 3 Quest Cards */}
               <main className="flex flex-col gap-3.5 flex-1">
                 {PUZZLE_ORDER.map((id, index) => {
@@ -449,6 +474,7 @@ export function App() {
           modalState.puzzleId ? RESTAURANTS[modalState.puzzleId] : null
         }
         celebrate={modalState.celebrate}
+        allSolved={solvedCount === 3}
         onClose={() => {
           setModalState({ puzzleId: null, celebrate: false });
           if (activePuzzle) {

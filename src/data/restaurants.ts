@@ -11,6 +11,7 @@ export interface RestaurantInfo {
   cuisine: string;
   description: string;
   directionsHint: string;
+  mapsUrl: string;
   accentColor: string;
 }
 
@@ -28,6 +29,7 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
       'Warm, comforting bowls of Japanese curry, crispy katsu, and hearty donburi — perfect for a cozy dinner.',
     directionsHint:
       'From ATLAS Bar, stroll over to Bugis Junction and head up the escalator to Level 2.',
+    mapsUrl: 'https://maps.app.goo.gl/fqb5aqjePTZ8kSEF7',
     accentColor: '#C85A43',
   },
   crossword: {
@@ -36,13 +38,14 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
     puzzleTitle: 'Crossword',
     puzzleSubtitle: '6 Memory Clues',
     mysteryTeaser: 'Solve the sizzling clues',
-    restaurantName: 'Micun / Mincheng Bibimbap',
+    restaurantName: 'Micun Bibimbap',
     location: 'Bugis Junction Level 3 / Victoria Street',
     cuisine: 'Sizzling Hot-Stone Bowls & Free-Flow Kimchi',
     description:
       'Crackling dolsot bibimbap bowls served piping hot with crispy rice edges and endless free-flow kimchi.',
     directionsHint:
       'Right along Victoria Street / Bugis Junction Level 3 — just a few minutes’ walk from ATLAS.',
+    mapsUrl: 'https://maps.app.goo.gl/pQAus2Mk6qL6Qkn26',
     accentColor: '#D9777F',
   },
   jigsaw: {
@@ -58,6 +61,7 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
       'Bold, numbing Sichuan skewers and fragrant mala bites made for sharing over late-night laughs.',
     directionsHint:
       'Right on Victoria Street beside Bugis Junction, an easy walk from ATLAS Bar.',
+    mapsUrl: 'https://maps.app.goo.gl/5EW4pTestkXC58hbA',
     accentColor: '#D49B38',
   },
 };

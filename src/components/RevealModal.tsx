@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapPin, Utensils, X } from 'lucide-react';
+import { ExternalLink, MapPin, Utensils, X } from 'lucide-react';
 import type { RestaurantInfo } from '../data/restaurants';
 import { PixelStardrop } from './PixelSprites';
 import { playTap, playVictory } from '../utils/sound';
@@ -9,12 +9,14 @@ import { playTap, playVictory } from '../utils/sound';
 interface RevealModalProps {
   restaurant: RestaurantInfo | null;
   celebrate?: boolean;
+  allSolved?: boolean;
   onClose: () => void;
 }
 
 export function RevealModal({
   restaurant,
   celebrate = false,
+  allSolved = false,
   onClose,
 }: RevealModalProps) {
   useEffect(() => {
@@ -133,16 +135,37 @@ export function RevealModal({
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  playTap();
-                  onClose();
-                }}
-                className="sdv-btn mt-4 w-full bg-[#5FA848] py-3 text-xs font-bold text-white uppercase tracking-wider"
-              >
-                Return to Quest Board
-              </button>
+              {allSolved && celebrate && (
+                <div className="mt-3 bg-[#FFF3D1] border-2 border-[#D49234] px-3 py-2 text-center">
+                  <p className="text-[11px] font-bold text-[#9E3C16] uppercase tracking-wider">
+                    ★ All 3 Quests Complete, Bubba! ★
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-4 flex flex-col gap-2.5">
+                <a
+                  href={restaurant.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => playTap()}
+                  className="sdv-btn w-full bg-[#E8A338] py-3 text-xs font-bold text-[#3D1603] uppercase tracking-wider inline-flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Open in Google Maps
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    playTap();
+                    onClose();
+                  }}
+                  className="sdv-btn w-full bg-[#5FA848] py-3 text-xs font-bold text-white uppercase tracking-wider"
+                >
+                  Return to Quest Board
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>
