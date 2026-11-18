@@ -22,6 +22,7 @@ import { CrosswordPuzzle } from './components/CrosswordPuzzle';
 import { JigsawPuzzle } from './components/JigsawPuzzle';
 import { RevealModal } from './components/RevealModal';
 import { StardewBackdrop } from './components/StardewBackdrop';
+import { TitleScreen } from './components/TitleScreen';
 import {
   PixelHeart,
   PixelJunimo,
@@ -43,6 +44,7 @@ const JUNIMO_COLORS: Record<PuzzleId, 'green' | 'rose' | 'gold'> = {
 };
 
 export function App() {
+  const [started, setStarted] = useState(false);
   const [progress, setProgress] = useState<QuestProgress>(() => loadProgress());
   const [activePuzzle, setActivePuzzle] = useState<PuzzleId | null>(null);
   const [modalState, setModalState] = useState<{
@@ -72,6 +74,10 @@ export function App() {
   };
 
   const solvedCount = PUZZLE_ORDER.filter((id) => progress.solved[id]).length;
+  const hasProgress =
+    solvedCount > 0 ||
+    progress.wordleGuesses.length > 0 ||
+    Object.keys(progress.crosswordGrid).length > 0;
 
   const handleSolve = (puzzleId: PuzzleId) => {
     setProgress((prev) => ({
@@ -102,7 +108,15 @@ export function App() {
       <StardewBackdrop />
 
       <AnimatePresence mode="wait">
-        {activePuzzle ? (
+        {!started ? (
+          <TitleScreen
+            key="title"
+            hasProgress={hasProgress}
+            muted={muted}
+            onToggleMute={toggleMute}
+            onStart={() => setStarted(true)}
+          />
+        ) : activePuzzle ? (
           <motion.div
             key={`puzzle-${activePuzzle}`}
             initial={{ opacity: 0, x: 28 }}
