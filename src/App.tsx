@@ -21,6 +21,7 @@ import { WordlePuzzle } from './components/WordlePuzzle';
 import { CrosswordPuzzle } from './components/CrosswordPuzzle';
 import { JigsawPuzzle } from './components/JigsawPuzzle';
 import { RevealModal } from './components/RevealModal';
+import { AllCompleteModal } from './components/AllCompleteModal';
 import { StardewBackdrop } from './components/StardewBackdrop';
 import { TitleScreen } from './components/TitleScreen';
 import {
@@ -53,6 +54,8 @@ export function App() {
   }>({ puzzleId: null, celebrate: false });
   const [confirmReset, setConfirmReset] = useState(false);
   const [muted, setMuted] = useState<boolean>(() => isSoundMuted());
+  const [pendingFinale, setPendingFinale] = useState(false);
+  const [showAllComplete, setShowAllComplete] = useState(false);
 
   useEffect(() => {
     saveProgress(progress);
@@ -116,6 +119,9 @@ export function App() {
     Object.keys(progress.crosswordGrid).length > 0;
 
   const handleSolve = (puzzleId: PuzzleId) => {
+    const willCompleteAll = PUZZLE_ORDER.every(
+      (id) => id === puzzleId || progress.solved[id]
+    );
     setProgress((prev) => ({
       ...prev,
       solved: {
@@ -123,8 +129,21 @@ export function App() {
         [puzzleId]: true,
       },
     }));
+    if (willCompleteAll) {
+      setPendingFinale(true);
+    }
     setModalState({ puzzleId, celebrate: true });
   };
+
+  useEffect(() => {
+    if (started && activePuzzle === null && pendingFinale) {
+      setPendingFinale(false);
+      const timer = window.setTimeout(() => {
+        setShowAllComplete(true);
+      }, 260);
+      return () => window.clearTimeout(timer);
+    }
+  }, [started, activePuzzle, pendingFinale]);
 
   const handleResetAll = () => {
     playTap();
@@ -135,6 +154,8 @@ export function App() {
     }
     setProgress(DEFAULT_PROGRESS);
     setConfirmReset(false);
+    setPendingFinale(false);
+    setShowAllComplete(false);
     setActivePuzzle(null);
     setModalState({ puzzleId: null, celebrate: false });
   };
@@ -394,24 +415,24 @@ export function App() {
                         </div>
 
                         {isSolved ? (
-                          <div className="mt-3.5 pt-3 border-t-2 border-[#DFA858] flex items-center justify-between gap-2">
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-[#421C09] truncate">
+                          <div className="mt-3.5 pt-3 border-t-2 border-[#DFA858]">
+                            <div>
+                              <p className="text-xs font-bold text-[#421C09]">
                                 {info.restaurantName}
                               </p>
-                              <p className="font-pixel-body text-base text-[#7A3710] leading-tight truncate">
+                              <p className="font-pixel-body text-lg text-[#7A3710] leading-tight mt-0.5">
                                 {info.location}
                               </p>
                             </div>
 
-                            <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="mt-3 grid grid-cols-2 gap-2">
                               <button
                                 type="button"
                                 onClick={() => {
                                   playTap();
                                   openPuzzle(id);
                                 }}
-                                className="sdv-btn bg-[#E8B878] px-2.5 py-1.5 text-[11px] font-bold text-[#421C09]"
+                                className="sdv-btn bg-[#E8B878] py-2 text-[11px] font-bold text-[#421C09]"
                               >
                                 Board
                               </button>
@@ -424,7 +445,7 @@ export function App() {
                                     celebrate: false,
                                   });
                                 }}
-                                className="sdv-btn bg-[#5FA848] px-3 py-1.5 text-[11px] font-bold text-white"
+                                className="sdv-btn bg-[#5FA848] py-2 text-[11px] font-bold text-white"
                               >
                                 Details
                               </button>
@@ -474,13 +495,17 @@ export function App() {
           modalState.puzzleId ? RESTAURANTS[modalState.puzzleId] : null
         }
         celebrate={modalState.celebrate}
-        allSolved={solvedCount === 3}
         onClose={() => {
           setModalState({ puzzleId: null, celebrate: false });
           if (activePuzzle) {
             leavePuzzle();
           }
         }}
+      />
+
+      <AllCompleteModal
+        open={showAllComplete}
+        onClose={() => setShowAllComplete(false)}
       />
     </div>
   );

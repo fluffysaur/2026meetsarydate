@@ -9,14 +9,12 @@ import { playTap, playVictory } from '../utils/sound';
 interface RevealModalProps {
   restaurant: RestaurantInfo | null;
   celebrate?: boolean;
-  allSolved?: boolean;
   onClose: () => void;
 }
 
 export function RevealModal({
   restaurant,
   celebrate = false,
-  allSolved = false,
   onClose,
 }: RevealModalProps) {
   useEffect(() => {
@@ -134,14 +132,6 @@ export function RevealModal({
                   </div>
                 </div>
               </div>
-
-              {allSolved && celebrate && (
-                <div className="mt-3 bg-[#FFF3D1] border-2 border-[#D49234] px-3 py-2 text-center">
-                  <p className="text-[11px] font-bold text-[#9E3C16] uppercase tracking-wider">
-                    ★ All 3 Quests Complete, Bubba! ★
-                  </p>
-                </div>
-              )}
 
               <div className="mt-4 flex flex-col gap-2.5">
                 <a
