@@ -81,7 +81,7 @@ const SECRET_SLOTS: { slot: number; key: string; letter: string }[] = [
   { slot: 1, key: '1,2', letter: 'B' },
   { slot: 2, key: '6,5', letter: 'I' },
   { slot: 3, key: '1,4', letter: 'B' },
-  { slot: 4, key: '6,7', letter: 'I' },
+  { slot: 4, key: '4,8', letter: 'I' },
   { slot: 5, key: '10,4', letter: 'M' },
   { slot: 6, key: '6,4', letter: 'B' },
   { slot: 7, key: '10,0', letter: 'A' },
