@@ -117,14 +117,14 @@ export function App() {
             className="relative z-10 h-[100dvh] flex flex-col overflow-hidden"
           >
             {/* Stardew Wooden Top Bar */}
-            <header className="shrink-0 sdv-wood-bar flex items-center justify-between px-3 py-2.5">
+            <header className="shrink-0 sdv-wood-bar grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2.5">
               <button
                 type="button"
                 onClick={() => {
                   playTap();
                   setActivePuzzle(null);
                 }}
-                className="sdv-btn inline-flex items-center gap-1 bg-[#FAD998] px-2.5 py-1.5 text-[11px] font-bold text-[#421C09]"
+                className="sdv-btn justify-self-start inline-flex items-center gap-1 bg-[#FAD998] px-2.5 py-1.5 text-[11px] font-bold text-[#421C09]"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Back
@@ -139,7 +139,7 @@ export function App() {
                 </h1>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="justify-self-end flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={toggleMute}
