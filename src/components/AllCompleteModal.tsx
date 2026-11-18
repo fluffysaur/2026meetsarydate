@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { PixelHeart, PixelStardrop } from './PixelSprites';
-import { playTap, playVictory } from '../utils/sound';
+import { playGrandFinale, playTap } from '../utils/sound';
 
 interface AllCompleteModalProps {
   open: boolean;
@@ -14,7 +14,7 @@ export function AllCompleteModal({ open, onClose }: AllCompleteModalProps) {
   useEffect(() => {
     if (!open) return;
 
-    playVictory();
+    playGrandFinale();
 
     const colors = ['#6BCB77', '#F6BD60', '#F0718D', '#9B5DE5', '#FFF0C4'];
     confetti({

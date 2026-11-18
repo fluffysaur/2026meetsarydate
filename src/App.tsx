@@ -56,6 +56,10 @@ export function App() {
   const [muted, setMuted] = useState<boolean>(() => isSoundMuted());
   const [pendingFinale, setPendingFinale] = useState(false);
   const [showAllComplete, setShowAllComplete] = useState(false);
+  const [debugMode, setDebugMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).has('debug');
+  });
 
   useEffect(() => {
     saveProgress(progress);
@@ -137,10 +141,10 @@ export function App() {
 
   useEffect(() => {
     if (started && activePuzzle === null && pendingFinale) {
-      setPendingFinale(false);
       const timer = window.setTimeout(() => {
+        setPendingFinale(false);
         setShowAllComplete(true);
-      }, 260);
+      }, 280);
       return () => window.clearTimeout(timer);
     }
   }, [started, activePuzzle, pendingFinale]);
@@ -218,6 +222,19 @@ export function App() {
                     <Volume2 className="w-3.5 h-3.5" />
                   )}
                 </button>
+
+                {debugMode && !progress.solved[activePuzzle] && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playTap();
+                      handleSolve(activePuzzle);
+                    }}
+                    className="sdv-btn bg-[#E8A338] px-2.5 py-1.5 text-[10px] font-bold text-[#3D1603]"
+                  >
+                    Auto-Solve
+                  </button>
+                )}
 
                 {progress.solved[activePuzzle] && (
                   <button
@@ -475,7 +492,7 @@ export function App() {
               </main>
 
               {/* Subtle Footer */}
-              <footer className="pt-6 pb-2 text-center">
+              <footer className="pt-6 pb-2 flex items-center justify-center gap-4">
                 <button
                   type="button"
                   onClick={handleResetAll}
@@ -483,6 +500,21 @@ export function App() {
                 >
                   <RotateCcw className="w-3 h-3" />
                   {confirmReset ? 'Tap again to confirm' : 'Reset All'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    playTap();
+                    setDebugMode((d) => !d);
+                  }}
+                  className={`px-2.5 py-1 text-[10px] font-bold transition ${
+                    debugMode
+                      ? 'bg-[#E8A338] text-[#3D1603] border border-[#3D1603]'
+                      : 'text-[#FFF0C4]/50 hover:text-[#FFF0C4]'
+                  }`}
+                >
+                  {debugMode ? 'Debug: ON' : 'Debug'}
                 </button>
               </footer>
             </div>

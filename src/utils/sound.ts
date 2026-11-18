@@ -145,3 +145,25 @@ export function playVictory() {
     playTone(freq, 0.16, 'triangle', 0.08, i * 0.085);
   });
 }
+
+export function playGrandFinale() {
+  // Harmonized Stardew-inspired Stardrop fanfare
+  const lead = [
+    { f: 523.25, t: 0, d: 0.14 },
+    { f: 659.25, t: 0.09, d: 0.14 },
+    { f: 783.99, t: 0.18, d: 0.14 },
+    { f: 1046.5, t: 0.27, d: 0.22 },
+    { f: 880.0, t: 0.44, d: 0.14 },
+    { f: 987.77, t: 0.56, d: 0.14 },
+    { f: 1046.5, t: 0.68, d: 0.55 },
+    { f: 1318.51, t: 0.68, d: 0.55 },
+    { f: 1567.98, t: 0.74, d: 0.55 },
+  ];
+  const bass = [
+    { f: 261.63, t: 0, d: 0.35 },
+    { f: 349.23, t: 0.44, d: 0.24 },
+    { f: 261.63, t: 0.68, d: 0.65 },
+  ];
+  lead.forEach((n) => playTone(n.f, n.d, 'triangle', 0.075, n.t));
+  bass.forEach((n) => playTone(n.f, n.d, 'sine', 0.06, n.t));
+}
