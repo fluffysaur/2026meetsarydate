@@ -29,7 +29,7 @@ export function isSoundMuted(): boolean {
   }
 }
 
-export function setSoundMuted(muted: boolean): void {
+export function setSoundMuted(muted: boolean, allowStartMusic = true): void {
   try {
     localStorage.setItem(MUTE_KEY, String(muted));
   } catch {
@@ -37,7 +37,7 @@ export function setSoundMuted(muted: boolean): void {
   }
   if (muted) {
     stopAmbientMusic();
-  } else {
+  } else if (allowStartMusic) {
     startAmbientMusic();
   }
 }
@@ -121,30 +121,25 @@ export function ensureMusicStarted() {
 }
 
 export function playTap() {
-  ensureMusicStarted();
   playTone(520, 0.05, 'triangle', 0.06);
 }
 
 export function playSwap() {
-  ensureMusicStarted();
   playTone(440, 0.06, 'sine', 0.06, 0);
   playTone(587, 0.07, 'sine', 0.06, 0.04);
 }
 
 export function playSparkle() {
-  ensureMusicStarted();
   playTone(784, 0.08, 'triangle', 0.07, 0);
   playTone(1046.5, 0.12, 'triangle', 0.07, 0.06);
 }
 
 export function playError() {
-  ensureMusicStarted();
   playTone(220, 0.12, 'square', 0.04, 0);
   playTone(185, 0.14, 'square', 0.04, 0.08);
 }
 
 export function playVictory() {
-  ensureMusicStarted();
   const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
   notes.forEach((freq, i) => {
     playTone(freq, 0.16, 'triangle', 0.08, i * 0.085);

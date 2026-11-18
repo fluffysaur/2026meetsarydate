@@ -29,7 +29,6 @@ import {
   PixelStardrop,
 } from './components/PixelSprites';
 import {
-  ensureMusicStarted,
   isSoundMuted,
   playTap,
   setSoundMuted,
@@ -58,18 +57,10 @@ export function App() {
     saveProgress(progress);
   }, [progress]);
 
-  useEffect(() => {
-    const startOnce = () => {
-      ensureMusicStarted();
-    };
-    window.addEventListener('pointerdown', startOnce, { once: true });
-    return () => window.removeEventListener('pointerdown', startOnce);
-  }, []);
-
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
-    setSoundMuted(next);
+    setSoundMuted(next, started);
     if (!next) playTap();
   };
 
