@@ -237,12 +237,12 @@ export function App() {
               {/* Wooden Quest Board Sign */}
               <header className="sdv-wood-panel p-2 mb-5">
                 <div className="sdv-parchment px-4 py-5 text-center">
-                  <h1 className="font-pixel-title text-lg sm:text-xl leading-relaxed text-[#421C09] drop-shadow-[0_2px_0_#FFF0C4]">
-                    Bugis Dinner Quest
+                  <h1 className="font-pixel-title text-base sm:text-lg leading-relaxed text-[#421C09] drop-shadow-[0_2px_0_#FFF0C4]">
+                    Bobo &amp; Bubba 2026 Meetsary
                   </h1>
 
                   <p className="mt-2 font-pixel-body text-xl text-[#7A3710] leading-tight">
-                    Pick a quest to unlock tonight’s dinner spot!
+                    A Date Night Dinner Quest for Bubba
                   </p>
 
                   {/* Progress Bar */}

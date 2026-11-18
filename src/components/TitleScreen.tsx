@@ -75,8 +75,8 @@ export function TitleScreen({
               </div>
             </div>
 
-            <h1 className="font-pixel-title text-xl sm:text-2xl leading-relaxed text-[#421C09] drop-shadow-[0_2px_0_#FFF0C4]">
-              Bugis Dinner Quest
+            <h1 className="font-pixel-title text-lg sm:text-xl leading-relaxed text-[#421C09] drop-shadow-[0_2px_0_#FFF0C4]">
+              Bobo &amp; Bubba 2026 Meetsary
             </h1>
 
             <p className="mt-3 font-pixel-body text-2xl text-[#9E3C16] leading-tight">
