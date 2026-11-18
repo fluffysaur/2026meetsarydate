@@ -33,7 +33,7 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
   crossword: {
     id: 'crossword',
     puzzleNumber: 2,
-    puzzleTitle: 'Mini Crossword',
+    puzzleTitle: 'Crossword',
     puzzleSubtitle: '6 Memory Clues',
     mysteryTeaser: 'Solve the sizzling clues',
     restaurantName: 'Micun / Mincheng Bibimbap',
