@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Delete } from 'lucide-react';
+import { playTap } from '../utils/sound';
 
 export type KeyState = 'correct' | 'present' | 'absent' | 'default';
 
@@ -19,11 +20,10 @@ const ROWS = [
 ];
 
 const KEY_STYLES: Record<KeyState, string> = {
-  correct: 'bg-[#5A8F6B] text-white border-[#4B7B5A]',
-  present: 'bg-[#D49B38] text-white border-[#BC862B]',
-  absent: 'bg-[#CFC5BE] text-[#6B5D57] border-[#BFB3AB]',
-  default:
-    'bg-white text-[#2D221E] border-[#E8DCD4] active:bg-[#F7ECE6] shadow-[0_1px_0_#E2D4CB]',
+  correct: 'bg-[#5FA848] text-white',
+  present: 'bg-[#E8A338] text-[#3D1603]',
+  absent: 'bg-[#9E8774] text-[#F5E6D3]',
+  default: 'bg-[#FAD998] text-[#421C09]',
 };
 
 export function MobileKeyboard({
@@ -40,12 +40,15 @@ export function MobileKeyboard({
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key === 'Backspace') {
         e.preventDefault();
+        playTap();
         onBackspace();
       } else if (e.key === 'Enter' && onEnter) {
         e.preventDefault();
+        playTap();
         onEnter();
       } else if (/^[a-zA-Z]$/.test(e.key)) {
         e.preventDefault();
+        playTap();
         onKey(e.key.toUpperCase());
       }
     };
@@ -55,7 +58,7 @@ export function MobileKeyboard({
 
   return (
     <div
-      className="w-full max-w-md mx-auto select-none touch-manipulation px-1.5 pb-2 pt-1"
+      className="w-full max-w-md mx-auto select-none touch-manipulation px-1.5 pb-2 pt-1.5"
       aria-label="On-screen keyboard"
     >
       <div className="flex flex-col gap-1.5">
@@ -65,8 +68,11 @@ export function MobileKeyboard({
               <button
                 type="button"
                 disabled={disabled}
-                onClick={onEnter}
-                className="flex items-center justify-center rounded-lg border border-[#D8B8AC] bg-[#F7ECE6] px-2.5 min-h-[46px] text-[11px] font-bold tracking-wider text-[#2D221E] active:scale-95 transition-transform disabled:opacity-50"
+                onClick={() => {
+                  playTap();
+                  onEnter();
+                }}
+                className="sdv-btn flex items-center justify-center bg-[#E88D48] px-2 min-h-[44px] text-[10px] font-bold tracking-wider text-[#3D1603] disabled:opacity-50"
               >
                 {enterLabel}
               </button>
@@ -79,8 +85,11 @@ export function MobileKeyboard({
                   key={letter}
                   type="button"
                   disabled={disabled}
-                  onClick={() => onKey(letter)}
-                  className={`flex-1 max-w-[38px] min-h-[46px] rounded-lg border text-sm font-bold flex items-center justify-center active:scale-95 transition-all disabled:opacity-50 ${KEY_STYLES[state]}`}
+                  onClick={() => {
+                    playTap();
+                    onKey(letter);
+                  }}
+                  className={`sdv-btn flex-1 max-w-[36px] min-h-[44px] text-sm font-bold flex items-center justify-center disabled:opacity-50 ${KEY_STYLES[state]}`}
                 >
                   {letter}
                 </button>
@@ -91,9 +100,12 @@ export function MobileKeyboard({
               <button
                 type="button"
                 disabled={disabled}
-                onClick={onBackspace}
+                onClick={() => {
+                  playTap();
+                  onBackspace();
+                }}
                 aria-label="Backspace"
-                className="flex items-center justify-center rounded-lg border border-[#E8DCD4] bg-[#F2E7E0] px-3 min-h-[46px] text-[#2D221E] active:scale-95 transition-transform disabled:opacity-50"
+                className="sdv-btn flex items-center justify-center bg-[#E8B878] px-2.5 min-h-[44px] text-[#3D1603] disabled:opacity-50"
               >
                 <Delete className="w-4 h-4" />
               </button>

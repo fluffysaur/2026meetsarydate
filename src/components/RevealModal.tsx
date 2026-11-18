@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { MapPin, Sparkles, Utensils, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MapPin, Utensils, X } from 'lucide-react';
 import type { RestaurantInfo } from '../data/restaurants';
+import { PixelStardrop } from './PixelSprites';
+import { playTap, playVictory } from '../utils/sound';
 
 interface RevealModalProps {
   restaurant: RestaurantInfo | null;
@@ -17,11 +20,15 @@ export function RevealModal({
   useEffect(() => {
     if (!restaurant || !celebrate) return;
 
-    const colors = ['#C85A43', '#D9777F', '#D49B38', '#5A8F6B', '#F7ECE6'];
+    playVictory();
+
+    const colors = ['#6BCB77', '#F6BD60', '#F0718D', '#9B5DE5', '#FFF0C4'];
     confetti({
       particleCount: 75,
       spread: 70,
-      origin: { y: 0.6 },
+      origin: { y: 0.58 },
+      shapes: ['square'],
+      scalar: 1.1,
       colors,
     });
 
@@ -31,6 +38,7 @@ export function RevealModal({
         angle: 60,
         spread: 55,
         origin: { x: 0.1, y: 0.65 },
+        shapes: ['square'],
         colors,
       });
       confetti({
@@ -38,6 +46,7 @@ export function RevealModal({
         angle: 120,
         spread: 55,
         origin: { x: 0.9, y: 0.65 },
+        shapes: ['square'],
         colors,
       });
     }, 240);
@@ -45,75 +54,99 @@ export function RevealModal({
     return () => window.clearTimeout(timer);
   }, [restaurant, celebrate]);
 
-  if (!restaurant) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[#2D221E]/45 backdrop-blur-xs p-4"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="reveal-title"
-    >
-      <div
-        className="w-full max-w-md rounded-3xl bg-[#FDF8F4] border border-[#EAD9CF] p-6 shadow-2xl animate-pop-in relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
+    <AnimatePresence>
+      {restaurant && (
+        <motion.div
+          key="reveal-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[#19132B]/75 backdrop-blur-[2px] p-4"
           onClick={onClose}
-          aria-label="Close reveal"
-          className="absolute right-4 top-4 w-9 h-9 rounded-full bg-[#F7ECE6] text-[#7C665E] flex items-center justify-center hover:bg-[#EFE0D7] active:scale-95 transition"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reveal-title"
         >
-          <X className="w-4 h-4" />
-        </button>
+          <motion.div
+            key="reveal-box"
+            initial={{ scale: 0.88, y: 24, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.92, y: 16, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 26 }}
+            className="w-full max-w-md sdv-wood-panel p-2 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sdv-parchment p-5 relative">
+              <button
+                type="button"
+                onClick={() => {
+                  playTap();
+                  onClose();
+                }}
+                aria-label="Close reveal"
+                className="sdv-btn absolute right-3 top-3 w-8 h-8 bg-[#E88D48] text-[#3D1603] flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
 
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-[#F7ECE6] px-3 py-1 text-xs font-semibold text-[#C85A43] mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
-          Dinner Option {restaurant.puzzleNumber} Unlocked
-        </div>
+              <div className="flex items-center gap-3 mb-3 pr-8">
+                <div className="animate-junimo shrink-0">
+                  <PixelStardrop className="w-10 h-10" />
+                </div>
+                <div>
+                  <span className="inline-block bg-[#5FA848] border-2 border-[#3D1603] px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                    Quest {restaurant.puzzleNumber} Complete!
+                  </span>
+                  <h2
+                    id="reveal-title"
+                    className="font-pixel-title text-base sm:text-lg text-[#421C09] mt-1.5 leading-snug"
+                  >
+                    {restaurant.restaurantName}
+                  </h2>
+                </div>
+              </div>
 
-        <h2
-          id="reveal-title"
-          className="font-serif text-3xl font-semibold text-[#2D221E] tracking-tight"
-        >
-          {restaurant.restaurantName}
-        </h2>
-
-        <p className="mt-1 text-sm font-medium text-[#C85A43] flex items-center gap-1.5">
-          <Utensils className="w-3.5 h-3.5 shrink-0" />
-          {restaurant.cuisine}
-        </p>
-
-        <p className="mt-4 text-sm leading-relaxed text-[#54433D]">
-          {restaurant.description}
-        </p>
-
-        <div className="mt-4 rounded-2xl bg-[#F7ECE6]/90 border border-[#EAD9CF] p-4">
-          <div className="flex items-start gap-2.5">
-            <MapPin className="w-4 h-4 text-[#C85A43] mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#7C665E]">
-                Location &amp; Directions
+              <p className="text-xs font-bold text-[#9E3C16] flex items-center gap-1.5">
+                <Utensils className="w-3.5 h-3.5 shrink-0" />
+                {restaurant.cuisine}
               </p>
-              <p className="text-sm font-semibold text-[#2D221E] mt-0.5">
-                {restaurant.location}
+
+              <p className="mt-3 font-pixel-body text-xl leading-snug text-[#421C09]">
+                {restaurant.description}
               </p>
-              <p className="text-xs text-[#7C665E] mt-1 leading-relaxed">
-                {restaurant.directionsHint}
-              </p>
+
+              <div className="mt-4 bg-[#FFEAB8] border-2 border-[#7A3710] p-3">
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-[#B8431D] mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A3710]">
+                      Location &amp; Directions
+                    </p>
+                    <p className="text-xs font-bold text-[#421C09] mt-0.5">
+                      {restaurant.location}
+                    </p>
+                    <p className="font-pixel-body text-lg text-[#5B2308] mt-0.5 leading-tight">
+                      {restaurant.directionsHint}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playTap();
+                  onClose();
+                }}
+                className="sdv-btn mt-4 w-full bg-[#5FA848] py-3 text-xs font-bold text-white uppercase tracking-wider"
+              >
+                Return to Quest Board
+              </button>
             </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-5 w-full rounded-2xl bg-[#C85A43] py-3.5 text-sm font-semibold text-white shadow-sm active:scale-[0.98] transition"
-        >
-          Back to Dinner Quest
-        </button>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

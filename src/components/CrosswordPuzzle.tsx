@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 import { MobileKeyboard } from './MobileKeyboard';
+import { playError, playSparkle, playTap } from '../utils/sound';
 
 const ROWS = 6;
 const COLS = 8;
@@ -147,6 +149,7 @@ export function CrosswordPuzzle({
   const handleCellTap = (r: number, c: number) => {
     const meta = GRID_META[keyOf(r, c)];
     if (!meta) return;
+    playTap();
 
     const isSameCell = selectedCell[0] === r && selectedCell[1] === c;
     if (isSameCell && meta.acrossClue && meta.downClue) {
@@ -163,6 +166,7 @@ export function CrosswordPuzzle({
   };
 
   const selectClue = (clue: Clue) => {
+    playTap();
     setSelectedCell([clue.row, clue.col]);
     setDirection(clue.direction);
     setShowAllClues(false);
@@ -170,6 +174,7 @@ export function CrosswordPuzzle({
 
   const cycleClue = useCallback(
     (delta: number) => {
+      playTap();
       const idx = CLUES.findIndex((c) => c.id === activeClue.id);
       const next = CLUES[(idx + delta + CLUES.length) % CLUES.length];
       setSelectedCell([next.row, next.col]);
@@ -184,7 +189,8 @@ export function CrosswordPuzzle({
         (k) => nextGrid[k] === GRID_META[k].solution
       );
       if (isComplete) {
-        window.setTimeout(() => onSolve(), 280);
+        playSparkle();
+        window.setTimeout(() => onSolve(), 420);
       }
     },
     [onSolve]
@@ -206,16 +212,13 @@ export function CrosswordPuzzle({
         return copy;
       });
 
-      // Advance cursor within the active clue
       const offset =
         activeClue.direction === 'across'
           ? c - activeClue.col
           : r - activeClue.row;
       if (offset < activeClue.answer.length - 1) {
-        const nextR =
-          activeClue.direction === 'across' ? r : r + 1;
-        const nextC =
-          activeClue.direction === 'across' ? c + 1 : c;
+        const nextR = activeClue.direction === 'across' ? r : r + 1;
+        const nextC = activeClue.direction === 'across' ? c + 1 : c;
         setSelectedCell([nextR, nextC]);
       }
 
@@ -266,6 +269,11 @@ export function CrosswordPuzzle({
         errors[k] = true;
       }
     }
+    if (Object.keys(errors).length > 0) {
+      playError();
+    } else {
+      playSparkle();
+    }
     setCheckedErrors(errors);
   };
 
@@ -275,8 +283,11 @@ export function CrosswordPuzzle({
       <div className="flex items-center justify-between px-4 py-2">
         <button
           type="button"
-          onClick={() => setShowAllClues((v) => !v)}
-          className="inline-flex items-center gap-1 rounded-full bg-[#F7ECE6] px-3 py-1.5 text-xs font-semibold text-[#2D221E] active:scale-95 transition"
+          onClick={() => {
+            playTap();
+            setShowAllClues((v) => !v);
+          }}
+          className="sdv-btn inline-flex items-center gap-1 bg-[#FAD998] px-3 py-1 text-[11px] font-bold text-[#421C09]"
         >
           All Clues
           {showAllClues ? (
@@ -290,7 +301,7 @@ export function CrosswordPuzzle({
           type="button"
           onClick={handleCheckPuzzle}
           disabled={solved}
-          className="inline-flex items-center gap-1 rounded-full bg-[#F7ECE6] px-3 py-1.5 text-xs font-semibold text-[#C85A43] active:scale-95 transition disabled:opacity-50"
+          className="sdv-btn inline-flex items-center gap-1 bg-[#E88D48] px-3 py-1 text-[11px] font-bold text-[#3D1603] disabled:opacity-50"
         >
           <Check className="w-3.5 h-3.5" />
           Check
@@ -298,38 +309,45 @@ export function CrosswordPuzzle({
       </div>
 
       {/* Expandable Full Clue List */}
-      {showAllClues && (
-        <div className="mx-4 mb-2 rounded-2xl bg-white border border-[#EAD9CF] p-3 shadow-sm max-h-44 overflow-y-auto animate-pop-in">
-          <div className="grid grid-cols-1 gap-1.5">
-            {CLUES.map((clue) => {
-              const isCurrent = clue.id === activeClue.id;
-              return (
-                <button
-                  key={clue.id}
-                  type="button"
-                  onClick={() => selectClue(clue)}
-                  className={`text-left rounded-xl px-2.5 py-1.5 text-xs transition ${
-                    isCurrent
-                      ? 'bg-[#F7ECE6] text-[#C85A43] font-semibold'
-                      : 'text-[#54433D] hover:bg-[#FDF8F4]'
-                  }`}
-                >
-                  <span className="font-bold mr-1.5">
-                    {clue.number}
-                    {clue.direction === 'across' ? 'A' : 'D'}.
-                  </span>
-                  {clue.clue}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showAllClues && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mx-4 mb-2 sdv-parchment p-2.5 max-h-40 overflow-y-auto"
+          >
+            <div className="grid grid-cols-1 gap-1">
+              {CLUES.map((clue) => {
+                const isCurrent = clue.id === activeClue.id;
+                return (
+                  <button
+                    key={clue.id}
+                    type="button"
+                    onClick={() => selectClue(clue)}
+                    className={`text-left px-2 py-1 font-pixel-body text-lg leading-tight transition ${
+                      isCurrent
+                        ? 'bg-[#FFEAB8] border-2 border-[#7A3710] text-[#B8431D] font-bold'
+                        : 'text-[#421C09]'
+                    }`}
+                  >
+                    <span className="font-bold mr-1.5">
+                      {clue.number}
+                      {clue.direction === 'across' ? 'A' : 'D'}.
+                    </span>
+                    {clue.clue}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Crossword Grid */}
-      <div className="flex-1 flex items-center justify-center px-3 py-2 min-h-0">
+      <div className="flex-1 flex items-center justify-center px-3 py-1 min-h-0">
         <div
-          className="w-full max-w-[352px] grid gap-1"
+          className="w-full max-w-[348px] sdv-wood-panel p-2 grid gap-1"
           style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
         >
           {Array.from({ length: ROWS * COLS }).map((_, idx) => {
@@ -347,50 +365,58 @@ export function CrosswordPuzzle({
             const hasError = Boolean(checkedErrors[k]);
             const val = gridValues[k] ?? '';
 
-            let cellBg = 'bg-white border-[#DCCAC0] text-[#2D221E]';
+            let cellBg = 'bg-[#FAD998] border-[#5B2308] text-[#421C09]';
             if (solved) {
-              cellBg = 'bg-[#E9F3EC] border-[#5A8F6B] text-[#2B593B]';
+              cellBg = 'bg-[#5FA848] border-[#3D1603] text-white animate-victory-hop';
             } else if (hasError) {
-              cellBg = 'bg-[#FDE8E8] border-[#D9534F] text-[#B52B27]';
+              cellBg = 'bg-[#E84A5F] border-[#3D1603] text-white';
             } else if (isSelected) {
-              cellBg = 'bg-[#FCE3D8] border-[#C85A43] text-[#2D221E] ring-2 ring-[#C85A43]/30';
+              cellBg = 'bg-[#FFF5D6] border-[#D9531E] text-[#421C09] ring-2 ring-[#FFE478]';
             } else if (isInActiveWord) {
-              cellBg = 'bg-[#F7ECE6] border-[#D8B8AC] text-[#2D221E]';
+              cellBg = 'bg-[#FFEAB8] border-[#7A3710] text-[#421C09]';
             }
 
             return (
-              <button
+              <motion.button
                 key={k}
                 type="button"
+                whileTap={{ scale: 0.92 }}
+                style={
+                  solved ? { animationDelay: `${(r + c) * 45}ms` } : undefined
+                }
                 onClick={() => handleCellTap(r, c)}
-                className={`relative aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-base sm:text-lg select-none transition-colors ${cellBg}`}
+                className={`relative aspect-square border-2 flex items-center justify-center font-bold text-base sm:text-lg select-none ${cellBg}`}
               >
                 {meta.number !== undefined && (
-                  <span className="absolute top-0.5 left-1 text-[9px] font-bold leading-none text-[#7C665E]">
+                  <span
+                    className={`absolute top-0.5 left-0.5 text-[8px] font-bold leading-none ${
+                      solved ? 'text-[#FFF0C4]' : 'text-[#7A3710]'
+                    }`}
+                  >
                     {meta.number}
                   </span>
                 )}
                 {val}
-              </button>
+              </motion.button>
             );
           })}
         </div>
       </div>
 
       {/* Active Clue Banner + Keyboard */}
-      <div className="bg-[#FDF8F4] border-t border-[#EFE2DA]">
-        <div className="max-w-md mx-auto flex items-center justify-between gap-2 px-3 py-2 bg-[#F7ECE6]/80 border-b border-[#EFE2DA]">
+      <div className="sdv-wood-bar border-t-3 border-[#4A1C05]">
+        <div className="max-w-md mx-auto flex items-center justify-between gap-2 px-3 py-2 bg-[#FAD998] border-b-2 border-[#4A1C05]">
           <button
             type="button"
             onClick={() => cycleClue(-1)}
             aria-label="Previous clue"
-            className="w-8 h-8 rounded-full bg-white border border-[#E6D6CC] flex items-center justify-center text-[#2D221E] active:scale-95 shrink-0"
+            className="sdv-btn w-8 h-8 bg-[#E8B878] flex items-center justify-center text-[#3D1603] shrink-0"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <p className="text-xs sm:text-sm text-center font-medium text-[#2D221E] leading-snug">
-            <span className="font-bold text-[#C85A43] mr-1.5">
+          <p className="font-pixel-body text-lg sm:text-xl text-center text-[#421C09] leading-tight">
+            <span className="font-bold text-[#B8431D] mr-1.5">
               {activeClue.number} {activeClue.direction.toUpperCase()}:
             </span>
             {activeClue.clue}
@@ -400,7 +426,7 @@ export function CrosswordPuzzle({
             type="button"
             onClick={() => cycleClue(1)}
             aria-label="Next clue"
-            className="w-8 h-8 rounded-full bg-white border border-[#E6D6CC] flex items-center justify-center text-[#2D221E] active:scale-95 shrink-0"
+            className="sdv-btn w-8 h-8 bg-[#E8B878] flex items-center justify-center text-[#3D1603] shrink-0"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

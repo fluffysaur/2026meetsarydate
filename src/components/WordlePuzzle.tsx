@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Lightbulb } from 'lucide-react';
 import { MobileKeyboard, type KeyState } from './MobileKeyboard';
+import { playError, playSparkle, playTap } from '../utils/sound';
 
 const SECRET = 'GOCHIYA';
 const WORD_LENGTH = SECRET.length; // 7
@@ -19,7 +21,6 @@ function evaluateGuess(guess: string, target: string): CellStatus[] {
   const result: CellStatus[] = Array(target.length).fill('absent');
   const remaining: (string | null)[] = target.split('');
 
-  // First pass: exact matches
   for (let i = 0; i < target.length; i++) {
     if (guess[i] === target[i]) {
       result[i] = 'correct';
@@ -27,7 +28,6 @@ function evaluateGuess(guess: string, target: string): CellStatus[] {
     }
   }
 
-  // Second pass: wrong position
   for (let i = 0; i < target.length; i++) {
     if (result[i] === 'correct') continue;
     const matchIdx = remaining.indexOf(guess[i]);
@@ -41,11 +41,11 @@ function evaluateGuess(guess: string, target: string): CellStatus[] {
 }
 
 const CELL_STYLES: Record<CellStatus, string> = {
-  correct: 'bg-[#5A8F6B] border-[#5A8F6B] text-white',
-  present: 'bg-[#D49B38] border-[#D49B38] text-white',
-  absent: 'bg-[#9E918A] border-[#9E918A] text-white',
-  typing: 'bg-white border-[#C85A43] text-[#2D221E] scale-[1.03]',
-  empty: 'bg-white/75 border-[#E6D6CC] text-[#2D221E]',
+  correct: 'bg-[#5FA848] border-[#3D1603] text-white',
+  present: 'bg-[#E8A338] border-[#3D1603] text-[#3D1603]',
+  absent: 'bg-[#8F7A68] border-[#3D1603] text-[#F5E6D3]',
+  typing: 'bg-[#FFF3D1] border-[#9E3C16] text-[#421C09]',
+  empty: 'bg-[#FAD998]/85 border-[#7A3710] text-[#421C09]',
 };
 
 export function WordlePuzzle({
@@ -56,6 +56,8 @@ export function WordlePuzzle({
 }: WordlePuzzleProps) {
   const [currentGuess, setCurrentGuess] = useState('');
   const [shakeRow, setShakeRow] = useState(false);
+  const [justSubmittedRow, setJustSubmittedRow] = useState<number | null>(null);
+  const [victoryRow, setVictoryRow] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
   const activeRowRef = useRef<HTMLDivElement | null>(null);
@@ -85,18 +87,25 @@ export function WordlePuzzle({
   const handleEnter = useCallback(() => {
     if (solved) return;
     if (currentGuess.length < WORD_LENGTH) {
+      playError();
       setShakeRow(true);
-      showToast('Enter all 7 letters');
+      showToast('Enter all 7 letters!');
       window.setTimeout(() => setShakeRow(false), 380);
       return;
     }
 
+    const submittedIdx = guesses.length;
     const nextGuesses = [...guesses, currentGuess];
+    setJustSubmittedRow(submittedIdx);
     onGuessesChange(nextGuesses);
     setCurrentGuess('');
 
     if (currentGuess === SECRET) {
-      window.setTimeout(() => onSolve(), 350);
+      window.setTimeout(() => {
+        playSparkle();
+        setVictoryRow(submittedIdx);
+      }, 650);
+      window.setTimeout(() => onSolve(), 1150);
     }
   }, [solved, currentGuess, guesses, onGuessesChange, onSolve, showToast]);
 
@@ -141,41 +150,61 @@ export function WordlePuzzle({
     <div className="flex flex-col flex-1 justify-between min-h-0">
       {/* Info & Hint bar */}
       <div className="flex items-center justify-between px-4 py-2">
-        <p className="text-xs text-[#7C665E]">
-          7 letters · Unlimited guesses · Any word allowed
+        <p className="font-pixel-body text-lg text-[#FFF0C4] drop-shadow-[0_1px_0_#19132B]">
+          7 letters · Unlimited tries
         </p>
         <button
           type="button"
-          onClick={() => setShowHint((v) => !v)}
-          className="inline-flex items-center gap-1 rounded-full bg-[#F7ECE6] px-2.5 py-1 text-xs font-semibold text-[#C85A43] active:scale-95 transition"
+          onClick={() => {
+            playTap();
+            setShowHint((v) => !v);
+          }}
+          className="sdv-btn inline-flex items-center gap-1 bg-[#FAD998] px-2.5 py-1 text-[11px] font-bold text-[#421C09]"
         >
-          <Lightbulb className="w-3.5 h-3.5" />
+          <Lightbulb className="w-3.5 h-3.5 text-[#C85A43]" />
           Hint
         </button>
       </div>
 
-      {showHint && (
-        <div className="mx-4 mb-2 rounded-2xl bg-[#F7ECE6] border border-[#EAD9CF] px-3.5 py-2 text-xs text-[#54433D] animate-pop-in">
-          Japanese curry, crispy katsu &amp; donburi spot in Bugis Junction (starts with{' '}
-          <span className="font-bold text-[#C85A43]">G</span>).
-        </div>
-      )}
+      <AnimatePresence>
+        {showHint && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="mx-4 mb-1.5 sdv-parchment px-3 py-2 font-pixel-body text-lg leading-tight text-[#421C09]"
+          >
+            Japanese curry, crispy katsu &amp; donburi spot in Bugis Junction
+            (starts with <span className="font-bold text-[#B8431D]">G</span>).
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Toast */}
       <div className="h-7 flex items-center justify-center">
-        {toast && (
-          <div className="rounded-full bg-[#2D221E] px-3.5 py-1 text-xs font-semibold text-white shadow-md animate-pop-in">
-            {toast}
-          </div>
-        )}
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-[#3D1603] border-2 border-[#FAD998] px-3 py-0.5 text-xs font-bold text-[#FFF0C4]"
+            >
+              {toast}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Wordle Grid */}
       <div className="flex-1 overflow-y-auto px-3 py-1 flex flex-col items-center justify-start">
-        <div className="w-full max-w-[340px] flex flex-col gap-1.5 pb-2">
+        <div className="w-full max-w-[340px] sdv-wood-panel p-2 flex flex-col gap-1.5">
           {Array.from({ length: totalRows }).map((_, rowIdx) => {
             const isSubmitted = rowIdx < guesses.length;
             const isActive = !solved && rowIdx === guesses.length;
+            const isJustSubmitted = justSubmittedRow === rowIdx;
+            const isVictoryRow = victoryRow === rowIdx;
+
             const word = isSubmitted
               ? guesses[rowIdx]
               : isActive
@@ -191,20 +220,37 @@ export function WordlePuzzle({
               <div
                 key={rowIdx}
                 ref={isActive ? activeRowRef : null}
-                className={`grid grid-cols-7 gap-1.5 ${
+                className={`grid grid-cols-7 gap-1 ${
                   isActive && shakeRow ? 'animate-shake' : ''
                 }`}
               >
                 {Array.from({ length: WORD_LENGTH }).map((__, colIdx) => {
                   const char = word[colIdx] ?? '';
                   const status = statuses[colIdx];
+                  const animClass = isVictoryRow
+                    ? 'animate-victory-hop'
+                    : isJustSubmitted
+                      ? 'animate-wordle-flip'
+                      : '';
+                  const delay = isVictoryRow
+                    ? `${colIdx * 65}ms`
+                    : isJustSubmitted
+                      ? `${colIdx * 85}ms`
+                      : undefined;
+
                   return (
-                    <div
-                      key={colIdx}
-                      className={`aspect-square rounded-xl border-2 flex items-center justify-center font-bold text-lg sm:text-xl transition-all duration-150 select-none ${CELL_STYLES[status]}`}
+                    <motion.div
+                      key={`${rowIdx}-${colIdx}-${char ? 'filled' : 'empty'}`}
+                      initial={
+                        isActive && char ? { scale: 1.16 } : false
+                      }
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.12 }}
+                      style={delay ? { animationDelay: delay } : undefined}
+                      className={`aspect-square border-2 flex items-center justify-center font-bold text-lg sm:text-xl select-none shadow-[inset_1px_1px_0_rgba(255,255,255,0.3)] ${CELL_STYLES[status]} ${animClass}`}
                     >
                       {char}
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -214,7 +260,7 @@ export function WordlePuzzle({
       </div>
 
       {/* Keyboard */}
-      <div className="pt-1 pb-safe bg-[#FDF8F4] border-t border-[#EFE2DA]">
+      <div className="pt-1 pb-safe sdv-wood-bar border-t-3 border-[#4A1C05]">
         <MobileKeyboard
           onKey={handleKey}
           onBackspace={handleBackspace}

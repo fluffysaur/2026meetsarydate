@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft,
   CheckCircle2,
-  Grid3X3,
-  Heart,
-  Image as ImageIcon,
   Lock,
   RotateCcw,
   Sparkles,
-  Type,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import {
   DEFAULT_PROGRESS,
@@ -22,13 +21,20 @@ import { WordlePuzzle } from './components/WordlePuzzle';
 import { CrosswordPuzzle } from './components/CrosswordPuzzle';
 import { JigsawPuzzle } from './components/JigsawPuzzle';
 import { RevealModal } from './components/RevealModal';
+import { StardewBackdrop } from './components/StardewBackdrop';
+import {
+  PixelHeart,
+  PixelJunimo,
+  PixelStardrop,
+} from './components/PixelSprites';
+import { isSoundMuted, playTap, setSoundMuted } from './utils/sound';
 
 const PUZZLE_ORDER: PuzzleId[] = ['wordle', 'crossword', 'jigsaw'];
 
-const PUZZLE_ICONS: Record<PuzzleId, typeof Type> = {
-  wordle: Type,
-  crossword: Grid3X3,
-  jigsaw: ImageIcon,
+const JUNIMO_COLORS: Record<PuzzleId, 'green' | 'rose' | 'gold'> = {
+  wordle: 'green',
+  crossword: 'rose',
+  jigsaw: 'gold',
 };
 
 export function App() {
@@ -39,10 +45,18 @@ export function App() {
     celebrate: boolean;
   }>({ puzzleId: null, celebrate: false });
   const [confirmReset, setConfirmReset] = useState(false);
+  const [muted, setMuted] = useState<boolean>(() => isSoundMuted());
 
   useEffect(() => {
     saveProgress(progress);
   }, [progress]);
+
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    setSoundMuted(next);
+    if (!next) playTap();
+  };
 
   const solvedCount = PUZZLE_ORDER.filter((id) => progress.solved[id]).length;
 
@@ -58,6 +72,7 @@ export function App() {
   };
 
   const handleResetAll = () => {
+    playTap();
     if (!confirmReset) {
       setConfirmReset(true);
       window.setTimeout(() => setConfirmReset(false), 3000);
@@ -69,244 +84,312 @@ export function App() {
     setModalState({ puzzleId: null, celebrate: false });
   };
 
-  if (activePuzzle) {
-    const info = RESTAURANTS[activePuzzle];
-    const isSolved = progress.solved[activePuzzle];
-
-    return (
-      <div className="h-[100dvh] flex flex-col bg-[#FDF8F4] text-[#2D221E] overflow-hidden">
-        <header className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-[#EFE2DA] bg-[#FDF8F4]/95 backdrop-blur-xs">
-          <button
-            type="button"
-            onClick={() => setActivePuzzle(null)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#F7ECE6] px-3 py-1.5 text-xs font-semibold text-[#2D221E] active:scale-95 transition"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back
-          </button>
-
-          <div className="text-center">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#C85A43]">
-              Puzzle {info.puzzleNumber}
-            </p>
-            <h1 className="font-serif text-base font-semibold leading-tight">
-              {info.puzzleTitle}
-            </h1>
-          </div>
-
-          {isSolved ? (
-            <button
-              type="button"
-              onClick={() =>
-                setModalState({ puzzleId: activePuzzle, celebrate: false })
-              }
-              className="inline-flex items-center gap-1 rounded-full bg-[#5A8F6B] px-3 py-1.5 text-xs font-semibold text-white active:scale-95 transition"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Reveal
-            </button>
-          ) : (
-            <div className="w-16" aria-hidden="true" />
-          )}
-        </header>
-
-        <main className="flex-1 flex flex-col min-h-0">
-          {activePuzzle === 'wordle' && (
-            <WordlePuzzle
-              guesses={progress.wordleGuesses}
-              solved={isSolved}
-              onGuessesChange={(wordleGuesses) =>
-                setProgress((prev) => ({ ...prev, wordleGuesses }))
-              }
-              onSolve={() => handleSolve('wordle')}
-            />
-          )}
-
-          {activePuzzle === 'crossword' && (
-            <CrosswordPuzzle
-              gridValues={progress.crosswordGrid}
-              solved={isSolved}
-              onGridChange={(crosswordGrid) =>
-                setProgress((prev) => ({ ...prev, crosswordGrid }))
-              }
-              onSolve={() => handleSolve('crossword')}
-            />
-          )}
-
-          {activePuzzle === 'jigsaw' && (
-            <JigsawPuzzle
-              solved={isSolved}
-              onSolve={() => handleSolve('jigsaw')}
-            />
-          )}
-        </main>
-
-        <RevealModal
-          restaurant={
-            modalState.puzzleId ? RESTAURANTS[modalState.puzzleId] : null
-          }
-          celebrate={modalState.celebrate}
-          onClose={() => {
-            setModalState({ puzzleId: null, celebrate: false });
-            setActivePuzzle(null);
-          }}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-[#FDF8F4] text-[#2D221E] px-5 py-8">
-      <div className="w-full max-w-md mx-auto flex-1 flex flex-col">
-        {/* Hero Header */}
-        <header className="text-center pt-2 pb-6">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#F7ECE6] border border-[#EAD9CF] px-3.5 py-1 text-xs font-semibold text-[#C85A43] mb-4">
-            <Heart className="w-3.5 h-3.5 fill-[#C85A43]" />
-            Near ATLAS Bar · Bugis
-          </div>
+    <div className="relative min-h-[100dvh] text-[#421C09] overflow-x-hidden">
+      <StardewBackdrop />
 
-          <h1 className="font-serif text-4xl font-semibold tracking-tight text-[#2D221E]">
-            Bugis Dinner Quest
-          </h1>
-
-          <p className="mt-2.5 text-sm text-[#7C665E] leading-relaxed max-w-xs mx-auto">
-            Pick a puzzle to unlock tonight’s dinner spot.
-          </p>
-
-          {/* Progress Pill */}
-          <div className="mt-5 inline-flex items-center gap-2.5 rounded-full bg-white border border-[#EAD9CF] px-4 py-2 shadow-2xs">
-            <div className="flex gap-1.5">
-              {PUZZLE_ORDER.map((id) => (
-                <span
-                  key={id}
-                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                    progress.solved[id] ? 'bg-[#5A8F6B]' : 'bg-[#E6D6CC]'
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-xs font-semibold text-[#54433D]">
-              {solvedCount} of 3 unlocked
-            </span>
-          </div>
-        </header>
-
-        {/* 3 Mystery Cards */}
-        <main className="flex flex-col gap-3.5 flex-1">
-          {PUZZLE_ORDER.map((id) => {
-            const info = RESTAURANTS[id];
-            const isSolved = progress.solved[id];
-            const Icon = PUZZLE_ICONS[id];
-
-            return (
-              <div
-                key={id}
-                className={`rounded-3xl border p-5 transition-all ${
-                  isSolved
-                    ? 'bg-white border-[#C8DFCE] shadow-xs'
-                    : 'bg-white border-[#EAD9CF] shadow-sm'
-                }`}
+      <AnimatePresence mode="wait">
+        {activePuzzle ? (
+          <motion.div
+            key={`puzzle-${activePuzzle}`}
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -28 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="relative z-10 h-[100dvh] flex flex-col overflow-hidden"
+          >
+            {/* Stardew Wooden Top Bar */}
+            <header className="shrink-0 sdv-wood-bar flex items-center justify-between px-3 py-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  playTap();
+                  setActivePuzzle(null);
+                }}
+                className="sdv-btn inline-flex items-center gap-1 bg-[#FAD998] px-2.5 py-1.5 text-[11px] font-bold text-[#421C09]"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-                        isSolved
-                          ? 'bg-[#E9F3EC] text-[#5A8F6B]'
-                          : 'bg-[#F7ECE6] text-[#C85A43]'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </div>
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Back
+              </button>
 
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-[#7C665E]">
-                        Puzzle {info.puzzleNumber} · {info.puzzleSubtitle}
-                      </p>
-                      <h2 className="font-serif text-xl font-semibold text-[#2D221E]">
-                        {info.puzzleTitle}
-                      </h2>
-                    </div>
-                  </div>
+              <div className="text-center">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[#FFE478]">
+                  Quest {RESTAURANTS[activePuzzle].puzzleNumber}
+                </p>
+                <h1 className="font-pixel-title text-xs text-[#FFF0C4] drop-shadow-[0_2px_0_#3D1603]">
+                  {RESTAURANTS[activePuzzle].puzzleTitle}
+                </h1>
+              </div>
 
-                  {isSolved ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#E9F3EC] px-2.5 py-1 text-[11px] font-bold text-[#3F7350]">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Unlocked
-                    </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}
+                  className="sdv-btn bg-[#FAD998] p-1.5 text-[#421C09]"
+                >
+                  {muted ? (
+                    <VolumeX className="w-3.5 h-3.5" />
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#F7ECE6] px-2.5 py-1 text-[11px] font-semibold text-[#7C665E]">
-                      <Lock className="w-3 h-3" />
-                      Mystery
-                    </span>
+                    <Volume2 className="w-3.5 h-3.5" />
                   )}
-                </div>
+                </button>
 
-                {isSolved ? (
-                  <div className="mt-4 pt-3.5 border-t border-[#F2E7E0] flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-bold text-[#2D221E]">
-                        {info.restaurantName}
-                      </p>
-                      <p className="text-xs text-[#7C665E]">{info.location}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setActivePuzzle(id)}
-                        className="rounded-xl bg-[#F7ECE6] px-3 py-2 text-xs font-semibold text-[#54433D] active:scale-95 transition"
-                      >
-                        Board
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setModalState({ puzzleId: id, celebrate: false })
-                        }
-                        className="rounded-xl bg-[#5A8F6B] px-3.5 py-2 text-xs font-semibold text-white active:scale-95 transition"
-                      >
-                        Details
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-4 pt-3.5 border-t border-[#F7ECE6] flex items-center justify-between gap-3">
-                    <p className="text-xs text-[#7C665E]">
-                      {info.mysteryTeaser}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setActivePuzzle(id)}
-                      className="shrink-0 rounded-xl bg-[#C85A43] px-4 py-2 text-xs font-semibold text-white shadow-2xs active:scale-95 transition"
-                    >
-                      Play →
-                    </button>
-                  </div>
+                {progress.solved[activePuzzle] && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playTap();
+                      setModalState({
+                        puzzleId: activePuzzle,
+                        celebrate: false,
+                      });
+                    }}
+                    className="sdv-btn inline-flex items-center gap-1 bg-[#5FA848] px-2.5 py-1.5 text-[10px] font-bold text-white"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    Reveal
+                  </button>
                 )}
               </div>
-            );
-          })}
-        </main>
+            </header>
 
-        {/* Subtle Footer */}
-        <footer className="pt-8 pb-2 text-center">
-          <button
-            type="button"
-            onClick={handleResetAll}
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[#9A857D] hover:text-[#C85A43] transition"
+            <main className="flex-1 flex flex-col min-h-0">
+              {activePuzzle === 'wordle' && (
+                <WordlePuzzle
+                  guesses={progress.wordleGuesses}
+                  solved={progress.solved.wordle}
+                  onGuessesChange={(wordleGuesses) =>
+                    setProgress((prev) => ({ ...prev, wordleGuesses }))
+                  }
+                  onSolve={() => handleSolve('wordle')}
+                />
+              )}
+
+              {activePuzzle === 'crossword' && (
+                <CrosswordPuzzle
+                  gridValues={progress.crosswordGrid}
+                  solved={progress.solved.crossword}
+                  onGridChange={(crosswordGrid) =>
+                    setProgress((prev) => ({ ...prev, crosswordGrid }))
+                  }
+                  onSolve={() => handleSolve('crossword')}
+                />
+              )}
+
+              {activePuzzle === 'jigsaw' && (
+                <JigsawPuzzle
+                  solved={progress.solved.jigsaw}
+                  onSolve={() => handleSolve('jigsaw')}
+                />
+              )}
+            </main>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="landing"
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 24 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="relative z-10 min-h-[100dvh] flex flex-col px-4 py-6"
           >
-            <RotateCcw className="w-3 h-3" />
-            {confirmReset ? 'Tap again to confirm reset' : 'Reset All'}
-          </button>
-        </footer>
-      </div>
+            <div className="w-full max-w-md mx-auto flex-1 flex flex-col">
+              {/* Top utility row */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="sdv-parchment px-3 py-1 inline-flex items-center gap-1.5 text-[10px] font-bold text-[#421C09]">
+                  <PixelHeart className="w-3.5 h-3.5" />
+                  Near ATLAS Bar · Bugis
+                </div>
+
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}
+                  className="sdv-btn bg-[#FAD998] p-2 text-[#421C09]"
+                >
+                  {muted ? (
+                    <VolumeX className="w-4 h-4" />
+                  ) : (
+                    <Volume2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+
+              {/* Wooden Quest Board Sign */}
+              <header className="sdv-wood-panel p-2 mb-5">
+                <div className="sdv-parchment px-4 py-5 text-center">
+                  <h1 className="font-pixel-title text-lg sm:text-xl leading-relaxed text-[#421C09] drop-shadow-[0_2px_0_#FFF0C4]">
+                    Bugis Dinner Quest
+                  </h1>
+
+                  <p className="mt-2 font-pixel-body text-xl text-[#7A3710] leading-tight">
+                    Pick a quest to unlock tonight’s dinner spot!
+                  </p>
+
+                  {/* Progress Bar */}
+                  <div className="mt-4 inline-flex items-center gap-2.5 bg-[#FFEAB8] border-2 border-[#7A3710] px-3.5 py-1.5">
+                    <div className="flex gap-1.5">
+                      {PUZZLE_ORDER.map((id) =>
+                        progress.solved[id] ? (
+                          <PixelStardrop key={id} className="w-4 h-4" />
+                        ) : (
+                          <span
+                            key={id}
+                            className="w-3.5 h-3.5 border-2 border-[#7A3710] bg-[#E8C589] inline-block"
+                          />
+                        )
+                      )}
+                    </div>
+                    <span className="text-[11px] font-bold text-[#421C09]">
+                      {solvedCount} / 3 Unlocked
+                    </span>
+                  </div>
+                </div>
+              </header>
+
+              {/* 3 Quest Cards */}
+              <main className="flex flex-col gap-3.5 flex-1">
+                {PUZZLE_ORDER.map((id, index) => {
+                  const info = RESTAURANTS[id];
+                  const isSolved = progress.solved[id];
+
+                  return (
+                    <motion.div
+                      key={id}
+                      initial={{ opacity: 0, y: 18 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        delay: index * 0.09,
+                        type: 'spring',
+                        stiffness: 320,
+                        damping: 24,
+                      }}
+                      className="sdv-wood-panel p-1.5"
+                    >
+                      <div className="sdv-parchment p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-[#FFEAB8] border-2 border-[#7A3710] flex items-center justify-center shrink-0">
+                              <div
+                                className="animate-junimo"
+                                style={{ animationDelay: `${index * 0.35}s` }}
+                              >
+                                <PixelJunimo
+                                  color={JUNIMO_COLORS[id]}
+                                  className="w-9 h-9"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-[#9E3C16]">
+                                Quest {info.puzzleNumber} · {info.puzzleSubtitle}
+                              </p>
+                              <h2 className="font-pixel-title text-sm text-[#421C09] mt-1">
+                                {info.puzzleTitle}
+                              </h2>
+                            </div>
+                          </div>
+
+                          {isSolved ? (
+                            <span className="inline-flex items-center gap-1 bg-[#5FA848] border-2 border-[#3D1603] px-2 py-0.5 text-[10px] font-bold text-white">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Done
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 bg-[#E8B878] border-2 border-[#7A3710] px-2 py-0.5 text-[10px] font-bold text-[#421C09]">
+                              <Lock className="w-3 h-3" />
+                              Quest
+                            </span>
+                          )}
+                        </div>
+
+                        {isSolved ? (
+                          <div className="mt-3.5 pt-3 border-t-2 border-[#DFA858] flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-[#421C09] truncate">
+                                {info.restaurantName}
+                              </p>
+                              <p className="font-pixel-body text-base text-[#7A3710] leading-tight truncate">
+                                {info.location}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  playTap();
+                                  setActivePuzzle(id);
+                                }}
+                                className="sdv-btn bg-[#E8B878] px-2.5 py-1.5 text-[11px] font-bold text-[#421C09]"
+                              >
+                                Board
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  playTap();
+                                  setModalState({
+                                    puzzleId: id,
+                                    celebrate: false,
+                                  });
+                                }}
+                                className="sdv-btn bg-[#5FA848] px-3 py-1.5 text-[11px] font-bold text-white"
+                              >
+                                Details
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-3.5 pt-3 border-t-2 border-[#DFA858] flex items-center justify-between gap-2">
+                            <p className="font-pixel-body text-lg text-[#7A3710] leading-tight">
+                              {info.mysteryTeaser}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                playTap();
+                                setActivePuzzle(id);
+                              }}
+                              className="sdv-btn shrink-0 bg-[#E88D48] px-3.5 py-1.5 text-xs font-bold text-[#3D1603]"
+                            >
+                              Play &gt;
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </main>
+
+              {/* Subtle Footer */}
+              <footer className="pt-6 pb-2 text-center">
+                <button
+                  type="button"
+                  onClick={handleResetAll}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold text-[#FFF0C4]/80 hover:text-[#FFF0C4] transition"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  {confirmReset ? 'Tap again to confirm' : 'Reset All'}
+                </button>
+              </footer>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <RevealModal
         restaurant={
           modalState.puzzleId ? RESTAURANTS[modalState.puzzleId] : null
         }
         celebrate={modalState.celebrate}
-        onClose={() => setModalState({ puzzleId: null, celebrate: false })}
+        onClose={() => {
+          setModalState({ puzzleId: null, celebrate: false });
+          setActivePuzzle(null);
+        }}
       />
     </div>
   );
