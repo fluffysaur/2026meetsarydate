@@ -1,8 +1,8 @@
 const MUTE_KEY = 'bugis_quest_muted_v1';
+const BGM_VOLUME = 0.22;
 
 let audioCtx: AudioContext | null = null;
-let musicInterval: number | null = null;
-let musicStep = 0;
+let bgmAudio: HTMLAudioElement | null = null;
 
 function getCtx(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -19,6 +19,17 @@ function getCtx(): AudioContext | null {
     audioCtx.resume().catch(() => {});
   }
   return audioCtx;
+}
+
+function getBgm(): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null;
+  if (!bgmAudio) {
+    bgmAudio = new Audio('/bgm.mp3');
+    bgmAudio.loop = true;
+    bgmAudio.volume = BGM_VOLUME;
+    bgmAudio.preload = 'auto';
+  }
+  return bgmAudio;
 }
 
 export function isSoundMuted(): boolean {
@@ -71,51 +82,22 @@ function playTone(
   osc.stop(start + duration + 0.02);
 }
 
-// Cozy Stardew-inspired evening music-box / acoustic loop (Fmaj7 - Dm7 - Bbmaj7 - C6)
-const MELODY_NOTES: (number | null)[] = [
-  523.25, 659.25, 698.46, null, 880.0, 698.46, 659.25, null,
-  587.33, 698.46, 880.0, null, 783.99, 698.46, 587.33, null,
-  466.16, 587.33, 698.46, null, 880.0, 783.99, 698.46, null,
-  523.25, 659.25, 783.99, null, 659.25, 523.25, null, null,
-];
-
-const BASS_NOTES: (number | null)[] = [
-  174.61, null, null, null, null, null, null, null,
-  146.83, null, null, null, null, null, null, null,
-  116.54, null, null, null, null, null, null, null,
-  130.81, null, null, null, null, null, null, null,
-];
-
 export function startAmbientMusic() {
-  if (isSoundMuted() || musicInterval !== null) return;
-  const ctx = getCtx();
-  if (!ctx) return;
-
-  musicInterval = window.setInterval(() => {
-    if (isSoundMuted()) return;
-    const idx = musicStep % MELODY_NOTES.length;
-    const melody = MELODY_NOTES[idx];
-    const bass = BASS_NOTES[idx];
-
-    if (melody) {
-      playTone(melody, 0.48, 'sine', 0.028);
-    }
-    if (bass) {
-      playTone(bass, 1.4, 'triangle', 0.022);
-    }
-    musicStep++;
-  }, 380);
+  if (isSoundMuted()) return;
+  const bgm = getBgm();
+  if (!bgm) return;
+  bgm.volume = BGM_VOLUME;
+  bgm.play().catch(() => {});
 }
 
 export function stopAmbientMusic() {
-  if (musicInterval !== null) {
-    window.clearInterval(musicInterval);
-    musicInterval = null;
+  if (bgmAudio) {
+    bgmAudio.pause();
   }
 }
 
 export function ensureMusicStarted() {
-  if (!isSoundMuted() && musicInterval === null) {
+  if (!isSoundMuted()) {
     startAmbientMusic();
   }
 }
@@ -147,7 +129,6 @@ export function playVictory() {
 }
 
 export function playGrandFinale() {
-  // Harmonized Stardew-inspired Stardrop fanfare
   const lead = [
     { f: 523.25, t: 0, d: 0.14 },
     { f: 659.25, t: 0.09, d: 0.14 },
