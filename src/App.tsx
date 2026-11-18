@@ -56,9 +56,9 @@ export function App() {
   const [muted, setMuted] = useState<boolean>(() => isSoundMuted());
   const [pendingFinale, setPendingFinale] = useState(false);
   const [showAllComplete, setShowAllComplete] = useState(false);
-  const [debugMode, setDebugMode] = useState(() => {
+  const [debugMode] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return new URLSearchParams(window.location.search).has('debug');
+    return new URLSearchParams(window.location.search).get('debug') === '1';
   });
 
   useEffect(() => {
@@ -492,7 +492,7 @@ export function App() {
               </main>
 
               {/* Subtle Footer */}
-              <footer className="pt-6 pb-2 flex items-center justify-center gap-4">
+              <footer className="pt-6 pb-2 text-center">
                 <button
                   type="button"
                   onClick={handleResetAll}
@@ -500,21 +500,6 @@ export function App() {
                 >
                   <RotateCcw className="w-3 h-3" />
                   {confirmReset ? 'Tap again to confirm' : 'Reset All'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    playTap();
-                    setDebugMode((d) => !d);
-                  }}
-                  className={`px-2.5 py-1 text-[10px] font-bold transition ${
-                    debugMode
-                      ? 'bg-[#E8A338] text-[#3D1603] border border-[#3D1603]'
-                      : 'text-[#FFF0C4]/50 hover:text-[#FFF0C4]'
-                  }`}
-                >
-                  {debugMode ? 'Debug: ON' : 'Debug'}
                 </button>
               </footer>
             </div>
