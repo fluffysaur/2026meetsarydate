@@ -32,6 +32,7 @@ import {
   isSoundMuted,
   playTap,
   setSoundMuted,
+  stopAmbientMusic,
 } from './utils/sound';
 
 const PUZZLE_ORDER: PuzzleId[] = ['wordle', 'crossword', 'jigsaw'];
@@ -61,6 +62,45 @@ export function App() {
     const img = new Image();
     img.src = '/chuan-pai.jpg';
   }, []);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const state = e.state as { view?: string; puzzle?: PuzzleId } | null;
+      setModalState({ puzzleId: null, celebrate: false });
+      if (state?.view === 'puzzle' && state.puzzle) {
+        setStarted(true);
+        setActivePuzzle(state.puzzle);
+      } else if (state?.view === 'board') {
+        setStarted(true);
+        setActivePuzzle(null);
+      } else {
+        setStarted(false);
+        setActivePuzzle(null);
+        stopAmbientMusic();
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const enterBoard = () => {
+    window.history.pushState({ view: 'board' }, '');
+    setStarted(true);
+  };
+
+  const openPuzzle = (id: PuzzleId) => {
+    window.history.pushState({ view: 'puzzle', puzzle: id }, '');
+    setActivePuzzle(id);
+  };
+
+  const leavePuzzle = () => {
+    const state = window.history.state as { view?: string } | null;
+    if (state?.view === 'puzzle') {
+      window.history.back();
+    } else {
+      setActivePuzzle(null);
+    }
+  };
 
   const toggleMute = () => {
     const next = !muted;
@@ -110,7 +150,7 @@ export function App() {
             hasProgress={hasProgress}
             muted={muted}
             onToggleMute={toggleMute}
-            onStart={() => setStarted(true)}
+            onStart={enterBoard}
           />
         ) : activePuzzle ? (
           <motion.div
@@ -127,7 +167,7 @@ export function App() {
                 type="button"
                 onClick={() => {
                   playTap();
-                  setActivePuzzle(null);
+                  leavePuzzle();
                 }}
                 className="sdv-btn justify-self-start inline-flex items-center gap-1 bg-[#FAD998] px-2.5 py-1.5 text-[11px] font-bold text-[#421C09]"
               >
@@ -344,7 +384,7 @@ export function App() {
                                 type="button"
                                 onClick={() => {
                                   playTap();
-                                  setActivePuzzle(id);
+                                  openPuzzle(id);
                                 }}
                                 className="sdv-btn bg-[#E8B878] px-2.5 py-1.5 text-[11px] font-bold text-[#421C09]"
                               >
@@ -374,7 +414,7 @@ export function App() {
                               type="button"
                               onClick={() => {
                                 playTap();
-                                setActivePuzzle(id);
+                                openPuzzle(id);
                               }}
                               className="sdv-btn shrink-0 bg-[#E88D48] px-3.5 py-1.5 text-xs font-bold text-[#3D1603]"
                             >
@@ -411,7 +451,9 @@ export function App() {
         celebrate={modalState.celebrate}
         onClose={() => {
           setModalState({ puzzleId: null, celebrate: false });
-          setActivePuzzle(null);
+          if (activePuzzle) {
+            leavePuzzle();
+          }
         }}
       />
     </div>
