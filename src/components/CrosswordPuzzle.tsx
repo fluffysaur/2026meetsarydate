@@ -4,7 +4,7 @@ import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide
 import { MobileKeyboard } from './MobileKeyboard';
 import { playError, playSparkle, playTap } from '../utils/sound';
 
-const ROWS = 13;
+const ROWS = 14;
 const COLS = 10;
 
 type Direction = 'across' | 'down';
@@ -39,8 +39,26 @@ const CLUES: Clue[] = [
     clue: 'Nickname for Yi Jia when his brain farts',
   },
   {
-    id: '3A',
+    id: '3D',
     number: 3,
+    direction: 'down',
+    row: 2,
+    col: 8,
+    answer: 'FRIENDS',
+    clue: "Show Rachel got Yi Jia to watch and now he's hooked",
+  },
+  {
+    id: '4D',
+    number: 4,
+    direction: 'down',
+    row: 4,
+    col: 2,
+    answer: 'MAPLESTORY',
+    clue: 'Latest game we started playing together',
+  },
+  {
+    id: '5A',
+    number: 5,
     direction: 'across',
     row: 6,
     col: 4,
@@ -48,8 +66,8 @@ const CLUES: Clue[] = [
     clue: 'Yi Jia likes to see Rachel wear this at the beach',
   },
   {
-    id: '4A',
-    number: 4,
+    id: '6A',
+    number: 6,
     direction: 'across',
     row: 10,
     col: 0,
@@ -67,7 +85,7 @@ const SECRET_SLOTS: { slot: number; key: string; letter: string }[] = [
   { slot: 5, key: '10,4', letter: 'M' },
   { slot: 6, key: '6,4', letter: 'B' },
   { slot: 7, key: '10,0', letter: 'A' },
-  { slot: 8, key: '4,5', letter: 'P' },
+  { slot: 8, key: '6,2', letter: 'P' },
 ];
 
 const SECRET_SLOT_BY_KEY: Record<string, number> = Object.fromEntries(

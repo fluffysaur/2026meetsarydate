@@ -34,7 +34,7 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
     id: 'crossword',
     puzzleNumber: 2,
     puzzleTitle: 'Mini Crossword',
-    puzzleSubtitle: '4 Memory Clues',
+    puzzleSubtitle: '6 Memory Clues',
     mysteryTeaser: 'Solve the sizzling clues',
     restaurantName: 'Micun / Mincheng Bibimbap',
     location: 'Bugis Junction Level 3 / Victoria Street',
