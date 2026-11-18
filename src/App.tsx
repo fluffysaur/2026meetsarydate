@@ -57,6 +57,11 @@ export function App() {
     saveProgress(progress);
   }, [progress]);
 
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/chuan-pai.jpg';
+  }, []);
+
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
@@ -114,7 +119,7 @@ export function App() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -28 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="relative z-10 h-[100dvh] flex flex-col overflow-hidden"
+            className="fixed inset-0 z-10 flex flex-col overflow-hidden"
           >
             {/* Stardew Wooden Top Bar */}
             <header className="shrink-0 sdv-wood-bar grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2.5">

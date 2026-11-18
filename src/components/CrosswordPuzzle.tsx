@@ -391,9 +391,9 @@ export function CrosswordPuzzle({
       </div>
 
       {/* Crossword Grid */}
-      <div className="flex-1 overflow-y-auto flex items-center justify-center px-3 py-1 min-h-0">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center px-3 py-3 min-h-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_10px,black_calc(100%-12px),transparent_100%)]">
         <div
-          className="w-full max-w-[348px] sdv-wood-panel p-1.5 grid gap-[2px]"
+          className="w-full max-w-[336px] my-auto sdv-wood-panel p-1.5 grid gap-[2px]"
           style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
         >
           {Array.from({ length: ROWS * COLS }).map((_, idx) => {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Shuffle } from 'lucide-react';
 import { playSparkle, playSwap, playTap } from '../utils/sound';
+import { PixelJunimo } from './PixelSprites';
 
 const COLS = 5;
 const ROWS = 7;
@@ -47,7 +48,19 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [sparkledSlots, setSparkledSlots] = useState<Record<number, boolean>>({});
+  const [imageLoaded, setImageLoaded] = useState(false);
   const boardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/chuan-pai.jpg';
+    if (img.complete) {
+      setImageLoaded(true);
+    } else {
+      img.onload = () => setImageLoaded(true);
+      img.onerror = () => setImageLoaded(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (solved) {
@@ -215,11 +228,11 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
       </div>
 
       {/* Jigsaw Board inside Stardew Wooden Frame */}
-      <div className="flex-1 flex items-center justify-center min-h-0">
-        <div className="sdv-wood-panel p-2 w-full max-w-[348px]">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center py-2 min-h-0">
+        <div className="sdv-wood-panel p-2 w-full max-w-[348px] my-auto">
           <div
             ref={boardRef}
-            className={`relative w-full aspect-[3/4] overflow-hidden border-2 border-[#3D1603] bg-[#2B1406] select-none touch-none grid ${
+            className={`relative w-full aspect-[3/4] overflow-hidden border-2 border-[#3D1603] bg-[#FAD998] select-none touch-none grid ${
               solved ? 'gap-0' : 'gap-[1.5px]'
             }`}
             style={{
@@ -227,6 +240,16 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
               gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
             }}
           >
+            {!imageLoaded && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#FAD998] text-[#421C09] gap-3">
+                <div className="animate-junimo">
+                  <PixelJunimo color="gold" className="w-12 h-12" />
+                </div>
+                <p className="font-pixel-title text-[10px] text-[#7A3710]">
+                  Loading photo...
+                </p>
+              </div>
+            )}
             {tiles.map((pieceId, slotIdx) => {
               const isDraggingSource =
                 drag?.hasMoved && drag.fromIndex === slotIdx;

@@ -196,8 +196,8 @@ export function WordlePuzzle({
       </div>
 
       {/* Wordle Grid */}
-      <div className="flex-1 overflow-y-auto px-3 py-1 flex flex-col items-center justify-start">
-        <div className="w-full max-w-[340px] sdv-wood-panel p-2 flex flex-col gap-1.5">
+      <div className="flex-1 overflow-y-auto px-3 pt-3 pb-6 flex flex-col items-center justify-start [mask-image:linear-gradient(to_bottom,transparent_0%,black_14px,black_calc(100%-20px),transparent_100%)]">
+        <div className="w-full max-w-[340px] sdv-wood-panel p-2 flex flex-col gap-1.5 my-auto">
           {Array.from({ length: totalRows }).map((_, rowIdx) => {
             const isSubmitted = rowIdx < guesses.length;
             const isActive = !solved && rowIdx === guesses.length;
