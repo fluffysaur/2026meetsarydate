@@ -4,8 +4,8 @@ import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide
 import { MobileKeyboard } from './MobileKeyboard';
 import { playError, playSparkle, playTap } from '../utils/sound';
 
-const ROWS = 6;
-const COLS = 8;
+const ROWS = 13;
+const COLS = 10;
 
 type Direction = 'across' | 'down';
 
@@ -21,51 +21,58 @@ interface Clue {
 
 const CLUES: Clue[] = [
   {
-    id: '3A',
-    number: 3,
-    direction: 'across',
-    row: 1,
-    col: 0,
-    answer: 'BIBIMBAP',
-    clue: 'Signature Korean mixed rice bowl',
-  },
-  {
-    id: '5A',
-    number: 5,
-    direction: 'across',
-    row: 3,
-    col: 3,
-    answer: 'EGG',
-    clue: 'Sunny-side up topping to mix in',
-  },
-  {
     id: '1D',
     number: 1,
     direction: 'down',
     row: 0,
-    col: 1,
-    answer: 'KIMCHI',
-    clue: 'Tangy fermented cabbage side dish',
+    col: 5,
+    answer: 'FOODPOISONING',
+    clue: 'Yi Jia had this and Rachel took care of him so lovingly',
   },
   {
-    id: '2D',
+    id: '2A',
     number: 2,
-    direction: 'down',
-    row: 0,
-    col: 3,
-    answer: 'RICE',
-    clue: 'Steamed base at the bottom of the bowl',
+    direction: 'across',
+    row: 1,
+    col: 2,
+    answer: 'BOBO',
+    clue: 'Nickname for Yi Jia when his brain farts',
   },
   {
-    id: '4D',
+    id: '3A',
+    number: 3,
+    direction: 'across',
+    row: 6,
+    col: 4,
+    answer: 'BIKINI',
+    clue: 'Yi Jia likes to see Rachel wear this at the beach',
+  },
+  {
+    id: '4A',
     number: 4,
-    direction: 'down',
-    row: 1,
-    col: 7,
-    answer: 'POT',
-    clue: 'Sizzling hot stone ___ (dolsot)',
+    direction: 'across',
+    row: 10,
+    col: 0,
+    answer: 'ARTEMIS',
+    clue: 'Where Yi Jia put a ring on it!',
   },
 ];
+
+// Numbered cells that spell out BIBIMBAP (1..8)
+const SECRET_SLOTS: { slot: number; key: string; letter: string }[] = [
+  { slot: 1, key: '1,2', letter: 'B' },
+  { slot: 2, key: '6,5', letter: 'I' },
+  { slot: 3, key: '1,4', letter: 'B' },
+  { slot: 4, key: '6,7', letter: 'I' },
+  { slot: 5, key: '10,4', letter: 'M' },
+  { slot: 6, key: '6,4', letter: 'B' },
+  { slot: 7, key: '10,0', letter: 'A' },
+  { slot: 8, key: '4,5', letter: 'P' },
+];
+
+const SECRET_SLOT_BY_KEY: Record<string, number> = Object.fromEntries(
+  SECRET_SLOTS.map((s) => [s.key, s.slot])
+);
 
 function keyOf(r: number, c: number): string {
   return `${r},${c}`;
@@ -74,6 +81,7 @@ function keyOf(r: number, c: number): string {
 interface CellMeta {
   solution: string;
   number?: number;
+  secretSlot?: number;
   acrossClue?: Clue;
   downClue?: Clue;
 }
@@ -86,7 +94,10 @@ const GRID_META: Record<string, CellMeta> = (() => {
       const c = clue.direction === 'across' ? clue.col + i : clue.col;
       const k = keyOf(r, c);
       if (!map[k]) {
-        map[k] = { solution: clue.answer[i] };
+        map[k] = {
+          solution: clue.answer[i],
+          secretSlot: SECRET_SLOT_BY_KEY[k],
+        };
       }
       if (i === 0) {
         map[k].number = clue.number;
@@ -116,7 +127,7 @@ export function CrosswordPuzzle({
   onGridChange,
   onSolve,
 }: CrosswordPuzzleProps) {
-  const [selectedCell, setSelectedCell] = useState<[number, number]>([1, 0]);
+  const [selectedCell, setSelectedCell] = useState<[number, number]>([1, 2]);
   const [direction, setDirection] = useState<Direction>('across');
   const [checkedErrors, setCheckedErrors] = useState<Record<string, boolean>>({});
   const [showAllClues, setShowAllClues] = useState(false);
@@ -190,7 +201,7 @@ export function CrosswordPuzzle({
       );
       if (isComplete) {
         playSparkle();
-        window.setTimeout(() => onSolve(), 420);
+        window.setTimeout(() => onSolve(), 450);
       }
     },
     [onSolve]
@@ -280,7 +291,7 @@ export function CrosswordPuzzle({
   return (
     <div className="flex flex-col flex-1 justify-between min-h-0">
       {/* Top toolbar */}
-      <div className="flex items-center justify-between px-4 py-2">
+      <div className="flex items-center justify-between px-4 py-1.5">
         <button
           type="button"
           onClick={() => {
@@ -315,7 +326,7 @@ export function CrosswordPuzzle({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mx-4 mb-2 sdv-parchment p-2.5 max-h-40 overflow-y-auto"
+            className="mx-4 mb-1.5 sdv-parchment p-2.5 max-h-40 overflow-y-auto"
           >
             <div className="grid grid-cols-1 gap-1">
               {CLUES.map((clue) => {
@@ -344,10 +355,45 @@ export function CrosswordPuzzle({
         )}
       </AnimatePresence>
 
+      {/* Numbered Secret Dish Strip (1..8 -> BIBIMBAP) */}
+      <div className="px-3 pb-1">
+        <div className="max-w-[348px] mx-auto sdv-parchment px-2 py-1.5">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-[#9E3C16] text-center mb-1">
+            Secret Dish Code
+          </p>
+          <div className="grid grid-cols-8 gap-1">
+            {SECRET_SLOTS.map(({ slot, key }) => {
+              const char = gridValues[key] ?? '';
+              return (
+                <div
+                  key={slot}
+                  className={`h-7 border-2 flex flex-col items-center justify-center relative ${
+                    solved
+                      ? 'bg-[#5FA848] border-[#3D1603] text-white'
+                      : 'bg-[#FFF3D1] border-[#7A3710] text-[#421C09]'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0 left-0.5 text-[7px] font-bold leading-none ${
+                      solved ? 'text-[#FFF0C4]' : 'text-[#9E3C16]'
+                    }`}
+                  >
+                    {slot}
+                  </span>
+                  <span className="text-xs font-bold leading-none mt-1">
+                    {char}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       {/* Crossword Grid */}
-      <div className="flex-1 flex items-center justify-center px-3 py-1 min-h-0">
+      <div className="flex-1 overflow-y-auto flex items-center justify-center px-3 py-1 min-h-0">
         <div
-          className="w-full max-w-[348px] sdv-wood-panel p-2 grid gap-1"
+          className="w-full max-w-[348px] sdv-wood-panel p-1.5 grid gap-[2px]"
           style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
         >
           {Array.from({ length: ROWS * COLS }).map((_, idx) => {
@@ -367,11 +413,13 @@ export function CrosswordPuzzle({
 
             let cellBg = 'bg-[#FAD998] border-[#5B2308] text-[#421C09]';
             if (solved) {
-              cellBg = 'bg-[#5FA848] border-[#3D1603] text-white animate-victory-hop';
+              cellBg =
+                'bg-[#5FA848] border-[#3D1603] text-white animate-victory-hop';
             } else if (hasError) {
               cellBg = 'bg-[#E84A5F] border-[#3D1603] text-white';
             } else if (isSelected) {
-              cellBg = 'bg-[#FFF5D6] border-[#D9531E] text-[#421C09] ring-2 ring-[#FFE478]';
+              cellBg =
+                'bg-[#FFF5D6] border-[#D9531E] text-[#421C09] ring-2 ring-[#FFE478]';
             } else if (isInActiveWord) {
               cellBg = 'bg-[#FFEAB8] border-[#7A3710] text-[#421C09]';
             }
@@ -382,18 +430,27 @@ export function CrosswordPuzzle({
                 type="button"
                 whileTap={{ scale: 0.92 }}
                 style={
-                  solved ? { animationDelay: `${(r + c) * 45}ms` } : undefined
+                  solved ? { animationDelay: `${(r + c) * 35}ms` } : undefined
                 }
                 onClick={() => handleCellTap(r, c)}
-                className={`relative aspect-square border-2 flex items-center justify-center font-bold text-base sm:text-lg select-none ${cellBg}`}
+                className={`relative aspect-square border-2 flex items-center justify-center font-bold text-xs sm:text-sm select-none ${cellBg}`}
               >
                 {meta.number !== undefined && (
                   <span
-                    className={`absolute top-0.5 left-0.5 text-[8px] font-bold leading-none ${
+                    className={`absolute top-0 left-0.5 text-[7px] font-bold leading-none ${
                       solved ? 'text-[#FFF0C4]' : 'text-[#7A3710]'
                     }`}
                   >
                     {meta.number}
+                  </span>
+                )}
+                {meta.secretSlot !== undefined && (
+                  <span
+                    className={`absolute bottom-0 right-0.5 text-[7px] font-bold leading-none ${
+                      solved ? 'text-[#FFE478]' : 'text-[#B8431D]'
+                    }`}
+                  >
+                    {meta.secretSlot}
                   </span>
                 )}
                 {val}
@@ -405,7 +462,7 @@ export function CrosswordPuzzle({
 
       {/* Active Clue Banner + Keyboard */}
       <div className="sdv-wood-bar border-t-3 border-[#4A1C05]">
-        <div className="max-w-md mx-auto flex items-center justify-between gap-2 px-3 py-2 bg-[#FAD998] border-b-2 border-[#4A1C05]">
+        <div className="max-w-md mx-auto flex items-center justify-between gap-2 px-3 py-1.5 bg-[#FAD998] border-b-2 border-[#4A1C05]">
           <button
             type="button"
             onClick={() => cycleClue(-1)}
@@ -415,8 +472,8 @@ export function CrosswordPuzzle({
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <p className="font-pixel-body text-lg sm:text-xl text-center text-[#421C09] leading-tight">
-            <span className="font-bold text-[#B8431D] mr-1.5">
+          <p className="font-pixel-body text-base sm:text-lg text-center text-[#421C09] leading-tight">
+            <span className="font-bold text-[#B8431D] mr-1">
               {activeClue.number} {activeClue.direction.toUpperCase()}:
             </span>
             {activeClue.clue}

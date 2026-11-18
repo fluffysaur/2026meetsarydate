@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Eye, EyeOff, Shuffle } from 'lucide-react';
+import { Shuffle } from 'lucide-react';
 import { playSparkle, playSwap, playTap } from '../utils/sound';
 
 const COLS = 5;
@@ -26,6 +26,8 @@ function createShuffledTiles(): number[] {
 interface DragState {
   fromIndex: number;
   pieceId: number;
+  startX: number;
+  startY: number;
   clientX: number;
   clientY: number;
   offsetX: number;
@@ -33,6 +35,7 @@ interface DragState {
   width: number;
   height: number;
   hoverIndex: number | null;
+  hasMoved: boolean;
 }
 
 export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
@@ -41,7 +44,7 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
       ? Array.from({ length: TOTAL_TILES }, (_, i) => i)
       : createShuffledTiles()
   );
-  const [showPreview, setShowPreview] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [sparkledSlots, setSparkledSlots] = useState<Record<number, boolean>>({});
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -49,6 +52,7 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
   useEffect(() => {
     if (solved) {
       setTiles(Array.from({ length: TOTAL_TILES }, (_, i) => i));
+      setSelectedSlot(null);
     }
   }, [solved]);
 
@@ -69,6 +73,44 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
     };
   };
 
+  const swapTiles = (a: number, b: number) => {
+    setTiles((prev) => {
+      const next = [...prev];
+      [next[a], next[b]] = [next[b], next[a]];
+
+      const landedHome: number[] = [];
+      if (next[a] === a) landedHome.push(a);
+      if (next[b] === b) landedHome.push(b);
+
+      if (landedHome.length > 0) {
+        playSparkle();
+        setSparkledSlots((s) => {
+          const copy = { ...s };
+          landedHome.forEach((idx) => {
+            copy[idx] = true;
+          });
+          return copy;
+        });
+        window.setTimeout(() => {
+          setSparkledSlots((s) => {
+            const copy = { ...s };
+            landedHome.forEach((idx) => {
+              delete copy[idx];
+            });
+            return copy;
+          });
+        }, 720);
+      } else {
+        playSwap();
+      }
+
+      if (next.every((pieceId, idx) => pieceId === idx)) {
+        window.setTimeout(() => onSolve(), 350);
+      }
+      return next;
+    });
+  };
+
   const handlePointerDown = (
     e: React.PointerEvent<HTMLDivElement>,
     slotIdx: number
@@ -81,6 +123,8 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
     setDrag({
       fromIndex: slotIdx,
       pieceId: tiles[slotIdx],
+      startX: e.clientX,
+      startY: e.clientY,
       clientX: e.clientX,
       clientY: e.clientY,
       offsetX: e.clientX - rect.left,
@@ -88,11 +132,16 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
       width: rect.width,
       height: rect.height,
       hoverIndex: slotIdx,
+      hasMoved: false,
     });
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    const moved = drag.hasMoved || Math.hypot(dx, dy) > 6;
+
     const target = document.elementFromPoint(e.clientX, e.clientY);
     const tileEl = target?.closest('[data-tile-index]') as HTMLElement | null;
     const hoverIndex = tileEl
@@ -106,6 +155,7 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
             clientX: e.clientX,
             clientY: e.clientY,
             hoverIndex,
+            hasMoved: moved,
           }
         : null
     );
@@ -113,48 +163,28 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
 
   const finishDrag = () => {
     if (!drag) return;
-    const { fromIndex, hoverIndex } = drag;
+    const { fromIndex, hoverIndex, hasMoved } = drag;
     setDrag(null);
 
+    if (!hasMoved) {
+      // Tap-to-swap
+      if (selectedSlot === null) {
+        playTap();
+        setSelectedSlot(fromIndex);
+      } else if (selectedSlot === fromIndex) {
+        playTap();
+        setSelectedSlot(null);
+      } else {
+        const first = selectedSlot;
+        setSelectedSlot(null);
+        swapTiles(first, fromIndex);
+      }
+      return;
+    }
+
+    setSelectedSlot(null);
     if (hoverIndex !== null && hoverIndex !== fromIndex) {
-      setTiles((prev) => {
-        const next = [...prev];
-        [next[fromIndex], next[hoverIndex]] = [
-          next[hoverIndex],
-          next[fromIndex],
-        ];
-
-        const landedHome: number[] = [];
-        if (next[fromIndex] === fromIndex) landedHome.push(fromIndex);
-        if (next[hoverIndex] === hoverIndex) landedHome.push(hoverIndex);
-
-        if (landedHome.length > 0) {
-          playSparkle();
-          setSparkledSlots((s) => {
-            const copy = { ...s };
-            landedHome.forEach((idx) => {
-              copy[idx] = true;
-            });
-            return copy;
-          });
-          window.setTimeout(() => {
-            setSparkledSlots((s) => {
-              const copy = { ...s };
-              landedHome.forEach((idx) => {
-                delete copy[idx];
-              });
-              return copy;
-            });
-          }, 720);
-        } else {
-          playSwap();
-        }
-
-        if (next.every((pieceId, idx) => pieceId === idx)) {
-          window.setTimeout(() => onSolve(), 350);
-        }
-        return next;
-      });
+      swapTiles(fromIndex, hoverIndex);
     }
   };
 
@@ -167,41 +197,21 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
           in place
         </span>
 
-        <div className="flex items-center gap-2">
+        {!solved && (
           <button
             type="button"
             onClick={() => {
               playTap();
-              setShowPreview((v) => !v);
+              setSelectedSlot(null);
+              setTiles(createShuffledTiles());
             }}
-            className={`sdv-btn inline-flex items-center gap-1 px-3 py-1 text-[11px] font-bold ${
-              showPreview
-                ? 'bg-[#5FA848] text-white'
-                : 'bg-[#FAD998] text-[#421C09]'
-            }`}
+            aria-label="Reshuffle tiles"
+            className="sdv-btn inline-flex items-center gap-1.5 bg-[#E8B878] px-3 py-1 text-[11px] font-bold text-[#3D1603]"
           >
-            {showPreview ? (
-              <EyeOff className="w-3.5 h-3.5" />
-            ) : (
-              <Eye className="w-3.5 h-3.5" />
-            )}
-            Preview
+            <Shuffle className="w-3.5 h-3.5" />
+            Shuffle
           </button>
-
-          {!solved && (
-            <button
-              type="button"
-              onClick={() => {
-                playTap();
-                setTiles(createShuffledTiles());
-              }}
-              aria-label="Reshuffle tiles"
-              className="sdv-btn inline-flex items-center gap-1 bg-[#E8B878] px-2.5 py-1 text-[11px] font-bold text-[#3D1603]"
-            >
-              <Shuffle className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Jigsaw Board inside Stardew Wooden Frame */}
@@ -218,11 +228,13 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
             }}
           >
             {tiles.map((pieceId, slotIdx) => {
-              const isDraggingSource = drag?.fromIndex === slotIdx;
+              const isDraggingSource =
+                drag?.hasMoved && drag.fromIndex === slotIdx;
               const isHoverTarget =
-                drag &&
+                drag?.hasMoved &&
                 drag.hoverIndex === slotIdx &&
                 drag.fromIndex !== slotIdx;
+              const isSelected = !solved && selectedSlot === slotIdx;
               const isCorrect = !solved && pieceId === slotIdx;
               const isSparkling = Boolean(sparkledSlots[slotIdx]);
 
@@ -233,28 +245,26 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
                   onPointerDown={(e) => handlePointerDown(e, slotIdx)}
                   onPointerMove={handlePointerMove}
                   onPointerUp={finishDrag}
-                  onPointerCancel={finishDrag}
+                  onPointerCancel={() => setDrag(null)}
                   style={getTileStyle(pieceId)}
                   className={`relative w-full h-full bg-no-repeat transition-transform duration-100 ${
                     solved ? '' : 'cursor-grab active:cursor-grabbing'
                   } ${isDraggingSource ? 'opacity-30 scale-95' : ''} ${
+                    isSelected
+                      ? 'ring-2 ring-inset ring-[#FFE478] brightness-115 scale-[0.96] z-10'
+                      : ''
+                  } ${
                     isHoverTarget
                       ? 'ring-2 ring-inset ring-[#FFE478] brightness-110 z-10'
                       : ''
-                  } ${isCorrect ? 'ring-1 ring-inset ring-[#FFE478]/50' : ''} ${
-                    isSparkling ? 'animate-tile-sparkle z-10' : ''
-                  }`}
+                  } ${
+                    isCorrect && !isSelected
+                      ? 'ring-1 ring-inset ring-[#FFE478]/50'
+                      : ''
+                  } ${isSparkling ? 'animate-tile-sparkle z-10' : ''}`}
                 />
               );
             })}
-
-            {showPreview && !solved && (
-              <img
-                src="/chuan-pai.jpg"
-                alt="Reference preview"
-                className="pointer-events-none absolute inset-0 w-full h-full object-cover opacity-30"
-              />
-            )}
           </div>
         </div>
       </div>
@@ -262,11 +272,11 @@ export function JigsawPuzzle({ solved, onSolve }: JigsawPuzzleProps) {
       <p className="text-center font-pixel-body text-lg text-[#FFF0C4] drop-shadow-[0_1px_0_#19132B] pt-2">
         {solved
           ? 'All 35 pieces matched!'
-          : 'Drag any tile onto another to swap them'}
+          : 'Drag or tap two tiles to swap them'}
       </p>
 
       {/* Floating dragged tile */}
-      {drag && (
+      {drag && drag.hasMoved && (
         <div
           style={{
             ...getTileStyle(drag.pieceId),

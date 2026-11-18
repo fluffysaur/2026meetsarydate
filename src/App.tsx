@@ -27,7 +27,12 @@ import {
   PixelJunimo,
   PixelStardrop,
 } from './components/PixelSprites';
-import { isSoundMuted, playTap, setSoundMuted } from './utils/sound';
+import {
+  ensureMusicStarted,
+  isSoundMuted,
+  playTap,
+  setSoundMuted,
+} from './utils/sound';
 
 const PUZZLE_ORDER: PuzzleId[] = ['wordle', 'crossword', 'jigsaw'];
 
@@ -50,6 +55,14 @@ export function App() {
   useEffect(() => {
     saveProgress(progress);
   }, [progress]);
+
+  useEffect(() => {
+    const startOnce = () => {
+      ensureMusicStarted();
+    };
+    window.addEventListener('pointerdown', startOnce, { once: true });
+    return () => window.removeEventListener('pointerdown', startOnce);
+  }, []);
 
   const toggleMute = () => {
     const next = !muted;

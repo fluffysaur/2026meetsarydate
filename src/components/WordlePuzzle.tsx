@@ -141,10 +141,9 @@ export function WordlePuzzle({
     return map;
   }, [guesses]);
 
-  const totalRows = Math.max(
-    MIN_ROWS,
-    solved ? guesses.length : guesses.length + 1
-  );
+  const totalRows = solved
+    ? guesses.length
+    : Math.max(MIN_ROWS, guesses.length + 1);
 
   return (
     <div className="flex flex-col flex-1 justify-between min-h-0">
