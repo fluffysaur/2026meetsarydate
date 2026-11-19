@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ExternalLink, MapPin, Wine, X } from 'lucide-react';
+import { ExternalLink, MapPin, Maximize2, Wine, X } from 'lucide-react';
 import { ATLAS_ALTERNATIVES } from '../data/restaurants';
+import { ImagePreviewModal } from './ImagePreviewModal';
 import { playTap } from '../utils/sound';
 
 interface AtlasAlternativesModalProps {
@@ -14,6 +15,10 @@ export function AtlasAlternativesModal({
   onClose,
 }: AtlasAlternativesModalProps) {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+  const [previewImage, setPreviewImage] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
 
   return (
     <AnimatePresence>
@@ -79,7 +84,15 @@ export function AtlasAlternativesModal({
                     className="bg-[#FFEAB8] border-2 border-[#7A3710] p-3"
                   >
                     {!failedImages[bar.id] && (
-                      <div className="mb-2.5 border-2 border-[#5B2308] bg-[#FAD998] overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playTap();
+                          setPreviewImage({ src: bar.imageUrl, alt: bar.name });
+                        }}
+                        aria-label={`Preview photo of ${bar.name}`}
+                        className="mb-2.5 w-full border-2 border-[#5B2308] bg-[#FAD998] overflow-hidden relative group block cursor-zoom-in"
+                      >
                         <img
                           src={bar.imageUrl}
                           alt={bar.name}
@@ -90,9 +103,12 @@ export function AtlasAlternativesModal({
                             }))
                           }
                           style={{ imageRendering: 'auto' }}
-                          className="w-full h-36 object-cover block"
+                          className="w-full h-36 object-cover block transition-transform duration-200 group-hover:scale-[1.02]"
                         />
-                      </div>
+                        <span className="absolute right-2 bottom-2 bg-[#19132B]/75 border border-[#FFF0C4]/60 text-[#FFF0C4] p-1 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider">
+                          <Maximize2 className="w-3 h-3" />
+                        </span>
+                      </button>
                     )}
 
                     <h3 className="font-pixel-title text-xs sm:text-sm text-[#421C09]">
@@ -136,6 +152,12 @@ export function AtlasAlternativesModal({
           </motion.div>
         </motion.div>
       )}
+
+      <ImagePreviewModal
+        src={previewImage?.src ?? null}
+        alt={previewImage?.alt ?? ''}
+        onClose={() => setPreviewImage(null)}
+      />
     </AnimatePresence>
   );
 }

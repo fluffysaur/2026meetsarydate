@@ -49,7 +49,7 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
       'Right along Victoria Street / Bugis Junction Level 3 — just a few minutes’ walk from ATLAS.',
     mapsUrl: 'https://maps.app.goo.gl/pQAus2Mk6qL6Qkn26',
     accentColor: '#D9777F',
-    imageUrl: '/micun-bibimbap.jpg',
+    imageUrl: '/micun-bibimbap.png',
   },
   jigsaw: {
     id: 'jigsaw',

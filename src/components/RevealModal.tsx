@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
-import { ExternalLink, MapPin, Utensils, X } from 'lucide-react';
+import { ExternalLink, MapPin, Maximize2, Utensils, X } from 'lucide-react';
 import type { RestaurantInfo } from '../data/restaurants';
 import { PixelStardrop } from './PixelSprites';
+import { ImagePreviewModal } from './ImagePreviewModal';
 import { playTap, playVictory } from '../utils/sound';
 
 interface RevealModalProps {
@@ -18,9 +19,11 @@ export function RevealModal({
   onClose,
 }: RevealModalProps) {
   const [imageFailed, setImageFailed] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     setImageFailed(false);
+    setPreviewOpen(false);
   }, [restaurant?.id]);
 
   useEffect(() => {
@@ -114,15 +117,26 @@ export function RevealModal({
               </div>
 
               {!imageFailed && (
-                <div className="mb-3 border-2 border-[#5B2308] bg-[#FFEAB8] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playTap();
+                    setPreviewOpen(true);
+                  }}
+                  aria-label={`Preview photo of ${restaurant.restaurantName}`}
+                  className="mb-3 w-full border-2 border-[#5B2308] bg-[#FFEAB8] overflow-hidden relative group block cursor-zoom-in"
+                >
                   <img
                     src={restaurant.imageUrl}
                     alt={restaurant.restaurantName}
                     onError={() => setImageFailed(true)}
                     style={{ imageRendering: 'auto' }}
-                    className="w-full h-40 sm:h-44 object-cover block"
+                    className="w-full h-40 sm:h-44 object-cover block transition-transform duration-200 group-hover:scale-[1.02]"
                   />
-                </div>
+                  <span className="absolute right-2 bottom-2 bg-[#19132B]/75 border border-[#FFF0C4]/60 text-[#FFF0C4] p-1 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider">
+                    <Maximize2 className="w-3 h-3" />
+                  </span>
+                </button>
               )}
 
               <p className="text-xs font-bold text-[#9E3C16] flex items-center gap-1.5">
@@ -178,6 +192,12 @@ export function RevealModal({
           </motion.div>
         </motion.div>
       )}
+
+      <ImagePreviewModal
+        src={previewOpen && restaurant ? restaurant.imageUrl : null}
+        alt={restaurant?.restaurantName ?? ''}
+        onClose={() => setPreviewOpen(false)}
+      />
     </AnimatePresence>
   );
 }
