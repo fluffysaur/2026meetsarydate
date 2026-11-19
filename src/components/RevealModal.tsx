@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
 import { ExternalLink, MapPin, Utensils, X } from 'lucide-react';
@@ -17,6 +17,12 @@ export function RevealModal({
   celebrate = false,
   onClose,
 }: RevealModalProps) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [restaurant?.id]);
+
   useEffect(() => {
     if (!restaurant || !celebrate) return;
 
@@ -77,7 +83,7 @@ export function RevealModal({
             className="w-full max-w-md sdv-wood-panel p-2 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sdv-parchment p-5 relative">
+            <div className="sdv-parchment p-5 relative max-h-[90dvh] overflow-y-auto">
               <button
                 type="button"
                 onClick={() => {
@@ -85,7 +91,7 @@ export function RevealModal({
                   onClose();
                 }}
                 aria-label="Close reveal"
-                className="sdv-btn absolute right-3 top-3 w-8 h-8 bg-[#E88D48] text-[#3D1603] flex items-center justify-center"
+                className="sdv-btn absolute right-3 top-3 w-8 h-8 bg-[#E88D48] text-[#3D1603] flex items-center justify-center z-10"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -106,6 +112,18 @@ export function RevealModal({
                   </h2>
                 </div>
               </div>
+
+              {!imageFailed && (
+                <div className="mb-3 border-2 border-[#5B2308] bg-[#FFEAB8] overflow-hidden">
+                  <img
+                    src={restaurant.imageUrl}
+                    alt={restaurant.restaurantName}
+                    onError={() => setImageFailed(true)}
+                    style={{ imageRendering: 'auto' }}
+                    className="w-full h-40 sm:h-44 object-cover block"
+                  />
+                </div>
+              )}
 
               <p className="text-xs font-bold text-[#9E3C16] flex items-center gap-1.5">
                 <Utensils className="w-3.5 h-3.5 shrink-0" />

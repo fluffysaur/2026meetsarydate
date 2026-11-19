@@ -8,6 +8,7 @@ import {
   Sparkles,
   Volume2,
   VolumeX,
+  Wine,
 } from 'lucide-react';
 import {
   DEFAULT_PROGRESS,
@@ -22,6 +23,7 @@ import { CrosswordPuzzle } from './components/CrosswordPuzzle';
 import { JigsawPuzzle } from './components/JigsawPuzzle';
 import { RevealModal } from './components/RevealModal';
 import { AllCompleteModal } from './components/AllCompleteModal';
+import { AtlasAlternativesModal } from './components/AtlasAlternativesModal';
 import { StardewBackdrop } from './components/StardewBackdrop';
 import { TitleScreen } from './components/TitleScreen';
 import {
@@ -57,6 +59,7 @@ export function App() {
   const [muted, setMuted] = useState<boolean>(() => isSoundMuted());
   const [pendingFinale, setPendingFinale] = useState(false);
   const [showAllComplete, setShowAllComplete] = useState(false);
+  const [showAtlasAlternatives, setShowAtlasAlternatives] = useState(false);
   const [debugMode] = useState(() => {
     if (typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('debug') === '1';
@@ -167,6 +170,7 @@ export function App() {
     setConfirmReset(false);
     setPendingFinale(false);
     setShowAllComplete(false);
+    setShowAtlasAlternatives(false);
     setActivePuzzle(null);
     setModalState({ puzzleId: null, celebrate: false });
   };
@@ -364,19 +368,33 @@ export function App() {
                   transition={{ type: 'spring', stiffness: 320, damping: 24 }}
                   className="sdv-wood-panel p-1.5 mb-4"
                 >
-                  <div className="bg-[#FFF3D1] border-2 border-[#5B2308] px-4 py-3 flex items-center gap-3">
-                    <div className="animate-junimo shrink-0">
-                      <PixelStardrop className="w-8 h-8" />
+                  <div className="bg-[#FFF3D1] border-2 border-[#5B2308] px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="animate-junimo shrink-0">
+                        <PixelStardrop className="w-8 h-8" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-pixel-title text-[11px] leading-snug text-[#9E3C16]">
+                          All 3 Spots Unlocked, Bubba!
+                        </p>
+                        <p className="font-pixel-body text-lg text-[#421C09] leading-tight mt-0.5 flex items-center gap-1">
+                          <span>Pick where we’re eating tonight</span>
+                          <PixelHeart className="w-3.5 h-3.5 inline shrink-0" />
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-pixel-title text-[11px] leading-snug text-[#9E3C16]">
-                        All 3 Spots Unlocked, Bubba!
-                      </p>
-                      <p className="font-pixel-body text-lg text-[#421C09] leading-tight mt-0.5 flex items-center gap-1">
-                        <span>Pick where we’re eating tonight</span>
-                        <PixelHeart className="w-3.5 h-3.5 inline shrink-0" />
-                      </p>
-                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playTap();
+                        setShowAtlasAlternatives(true);
+                      }}
+                      className="sdv-btn mt-3 w-full bg-[#E8A338] py-2 px-3 text-[11px] font-bold text-[#3D1603] uppercase tracking-wider inline-flex items-center justify-center gap-1.5"
+                    >
+                      <Wine className="w-3.5 h-3.5 shrink-0" />
+                      ATLAS Full? See Backup Bars
+                    </button>
                   </div>
                 </motion.div>
               )}
@@ -530,6 +548,11 @@ export function App() {
       <AllCompleteModal
         open={showAllComplete}
         onClose={() => setShowAllComplete(false)}
+      />
+
+      <AtlasAlternativesModal
+        open={showAtlasAlternatives}
+        onClose={() => setShowAtlasAlternatives(false)}
       />
     </div>
   );

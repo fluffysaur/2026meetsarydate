@@ -13,6 +13,7 @@ export interface RestaurantInfo {
   directionsHint: string;
   mapsUrl: string;
   accentColor: string;
+  imageUrl: string;
 }
 
 export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
@@ -31,6 +32,7 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
       'From ATLAS Bar, stroll over to Bugis Junction and head up the escalator to Level 2.',
     mapsUrl: 'https://maps.app.goo.gl/fqb5aqjePTZ8kSEF7',
     accentColor: '#C85A43',
+    imageUrl: '/gochiya.jpg',
   },
   crossword: {
     id: 'crossword',
@@ -47,6 +49,7 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
       'Right along Victoria Street / Bugis Junction Level 3 — just a few minutes’ walk from ATLAS.',
     mapsUrl: 'https://maps.app.goo.gl/pQAus2Mk6qL6Qkn26',
     accentColor: '#D9777F',
+    imageUrl: '/micun-bibimbap.jpg',
   },
   jigsaw: {
     id: 'jigsaw',
@@ -63,8 +66,48 @@ export const RESTAURANTS: Record<PuzzleId, RestaurantInfo> = {
       'Right on Victoria Street beside Bugis Junction, an easy walk from ATLAS Bar.',
     mapsUrl: 'https://maps.app.goo.gl/5EW4pTestkXC58hbA',
     accentColor: '#D49B38',
+    imageUrl: '/chuan-pai.jpg',
   },
 };
+
+export interface AtlasAlternative {
+  id: string;
+  name: string;
+  address: string;
+  vibe: string;
+  mapsUrl: string;
+  imageUrl: string;
+}
+
+export const ATLAS_ALTERNATIVES: AtlasAlternative[] = [
+  {
+    id: 'plume',
+    name: 'PLUME',
+    address: '7 Raffles Blvd, Level 1 Pan Pacific, Singapore 039595',
+    vibe: 'Avian-inspired cocktail lounge in Pan Pacific’s grand atrium',
+    mapsUrl:
+      'https://www.google.com/maps/search/?api=1&query=PLUME+7+Raffles+Blvd+Level+1+Pan+Pacific+Singapore+039595',
+    imageUrl: '/plume.jpg',
+  },
+  {
+    id: 'whisper-room',
+    name: 'The Whisper Room',
+    address: '138 Market St, Level 38 CapitaGreen, Singapore 048946',
+    vibe: 'Level 38 jazz & cocktail sanctuary with skyline views',
+    mapsUrl:
+      'https://www.google.com/maps/search/?api=1&query=The+Whisper+Room+138+Market+St+Level+38+CapitaGreen+Singapore+048946',
+    imageUrl: '/whisper-room.webp',
+  },
+  {
+    id: 'cool-cats',
+    name: 'Cool Cats',
+    address: '32 Beach Rd, Singapore 189764',
+    vibe: 'Intimate live music & craft cocktails at The NCO Club',
+    mapsUrl:
+      'https://www.google.com/maps/search/?api=1&query=Cool+Cats+32+Beach+Rd+Singapore+189764',
+    imageUrl: '/cool-cats.jpg',
+  },
+];
 
 export const STORAGE_KEY = 'bugis_dinner_quest_v1';
 
