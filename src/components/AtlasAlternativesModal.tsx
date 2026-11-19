@@ -4,6 +4,7 @@ import { ExternalLink, MapPin, Maximize2, Wine, X } from 'lucide-react';
 import { ATLAS_ALTERNATIVES } from '../data/restaurants';
 import { ImagePreviewModal } from './ImagePreviewModal';
 import { playTap } from '../utils/sound';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface AtlasAlternativesModalProps {
   open: boolean;
@@ -19,6 +20,8 @@ export function AtlasAlternativesModal({
     src: string;
     alt: string;
   } | null>(null);
+
+  useScrollLock(open);
 
   return (
     <AnimatePresence>
@@ -43,7 +46,7 @@ export function AtlasAlternativesModal({
             className="w-full max-w-md sdv-wood-panel p-2 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sdv-parchment p-5 relative max-h-[90dvh] overflow-y-auto">
+            <div className="sdv-parchment p-5 relative max-h-[90dvh] overflow-y-auto overscroll-contain">
               <button
                 type="button"
                 onClick={() => {

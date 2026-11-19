@@ -6,6 +6,7 @@ import type { RestaurantInfo } from '../data/restaurants';
 import { PixelStardrop } from './PixelSprites';
 import { ImagePreviewModal } from './ImagePreviewModal';
 import { playTap, playVictory } from '../utils/sound';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface RevealModalProps {
   restaurant: RestaurantInfo | null;
@@ -20,6 +21,8 @@ export function RevealModal({
 }: RevealModalProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  useScrollLock(Boolean(restaurant));
 
   useEffect(() => {
     setImageFailed(false);
@@ -86,7 +89,7 @@ export function RevealModal({
             className="w-full max-w-md sdv-wood-panel p-2 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sdv-parchment p-5 relative max-h-[90dvh] overflow-y-auto">
+            <div className="sdv-parchment p-5 relative max-h-[90dvh] overflow-y-auto overscroll-contain">
               <button
                 type="button"
                 onClick={() => {

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { PixelHeart, PixelStardrop } from './PixelSprites';
 import { playGrandFinale, playTap } from '../utils/sound';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface AllCompleteModalProps {
   open: boolean;
@@ -11,6 +12,8 @@ interface AllCompleteModalProps {
 }
 
 export function AllCompleteModal({ open, onClose }: AllCompleteModalProps) {
+  useScrollLock(open);
+
   useEffect(() => {
     if (!open) return;
 
@@ -71,7 +74,7 @@ export function AllCompleteModal({ open, onClose }: AllCompleteModalProps) {
             className="w-full max-w-md sdv-wood-panel p-2 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sdv-parchment px-5 py-6 text-center relative">
+            <div className="sdv-parchment px-5 py-6 text-center relative max-h-[90dvh] overflow-y-auto overscroll-contain">
               <button
                 type="button"
                 onClick={() => {

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { playTap } from '../utils/sound';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface ImagePreviewModalProps {
   src: string | null;
@@ -13,6 +14,8 @@ export function ImagePreviewModal({
   alt,
   onClose,
 }: ImagePreviewModalProps) {
+  useScrollLock(Boolean(src));
+
   return (
     <AnimatePresence>
       {src && (
